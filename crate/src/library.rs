@@ -176,6 +176,27 @@ pub(crate) enum Mark {
     SentenceKeys,
 }
 
+impl Mark {
+    /// The name a refusal and the report both call this mark.
+    ///
+    /// Held equal to the serde spelling by a test, because
+    /// `fixtures/detection.json` names marks the serde way and an
+    /// evidence detail names them this way — two spellings of one thing
+    /// that must not drift.
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Mark::DoubleBrace => "double-brace",
+            Mark::IcuArgument => "icu-argument",
+            Mark::Positional => "positional",
+            Mark::SingleBrace => "single-brace",
+            Mark::DollarT => "dollar-t",
+            Mark::PluralKeySuffix => "plural-key-suffix",
+            Mark::ArbMetadata => "arb-metadata",
+            Mark::SentenceKeys => "sentence-keys",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Library {
     pub(crate) id: Id,
@@ -485,17 +506,53 @@ mod tests {
         }
     }
 
-    /// Identification needs two agreeing classes, so a library with only
-    /// one kind of evidence could never be identified at all.
+    /// `Id::library()` says "every id has a row" and would panic if one
+    /// did not. The `match` is what keeps that honest: adding a variant
+    /// makes it non-exhaustive and fails the build, rather than leaving
+    /// the panic to be found at runtime by whoever ran the tool.
     #[test]
-    fn every_library_offers_at_least_two_classes_of_evidence() {
-        for library in all() {
-            let classes = usize::from(!library.packages.is_empty())
-                + usize::from(!library.configs.is_empty())
-                + usize::from(!library.layouts.is_empty())
-                + usize::from(!library.signatures.is_empty())
-                + usize::from(!library.calls.is_empty());
-            assert!(classes >= 2, "{:?} has {classes}", library.id);
+    fn every_id_variant_has_a_row() {
+        let every = [Id::I18next, Id::NextIntl, Id::VscodeL10n, Id::FlutterArb];
+        for id in every {
+            match id {
+                Id::I18next | Id::NextIntl | Id::VscodeL10n | Id::FlutterArb => {}
+            }
+            assert_eq!(id.library().id, id, "{id:?} has no row");
+        }
+        assert_eq!(all().len(), every.len(), "a row nothing names");
+    }
+
+    /// `Mark::as_str` and the serde spelling are two names for one thing:
+    /// an evidence detail is written with the first and
+    /// `fixtures/detection.json` names marks with the second. If they
+    /// drift, a corpus case passes against a mark no refusal ever says.
+    #[test]
+    fn every_mark_spells_itself_the_way_serde_does() {
+        for mark in [
+            Mark::DoubleBrace,
+            Mark::IcuArgument,
+            Mark::Positional,
+            Mark::SingleBrace,
+            Mark::DollarT,
+            Mark::PluralKeySuffix,
+            Mark::ArbMetadata,
+            Mark::SentenceKeys,
+        ] {
+            match mark {
+                Mark::DoubleBrace
+                | Mark::IcuArgument
+                | Mark::Positional
+                | Mark::SingleBrace
+                | Mark::DollarT
+                | Mark::PluralKeySuffix
+                | Mark::ArbMetadata
+                | Mark::SentenceKeys => {}
+            }
+            assert_eq!(
+                serde_json::to_value(mark).expect("a mark serializes"),
+                serde_json::Value::String(mark.as_str().to_string()),
+                "{mark:?}"
+            );
         }
     }
 

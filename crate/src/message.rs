@@ -175,11 +175,16 @@ fn single_brace(bytes: &[u8], index: usize, grammar: Grammar, parsed: &mut Parse
     } else {
         Interpolation::SingleBrace
     };
-    if grammar.interpolation == found
-        || (grammar.interpolation == Interpolation::SingleBrace
-            && found == Interpolation::Positional)
-    {
+    // A `match` rather than a comparison, so a library written in a
+    // fourth interpolation style fails the build here instead of
+    // silently reading none of its placeholders.
+    let reads = match grammar.interpolation {
         // ICU reads `{0}` and `{name}` alike.
+        Interpolation::SingleBrace => true,
+        Interpolation::Positional => found == Interpolation::Positional,
+        Interpolation::DoubleBrace => false,
+    };
+    if reads {
         parsed.tokens.push(Token {
             name: name(bytes, start, end),
         });
@@ -232,8 +237,13 @@ fn balanced(bytes: &[u8], index: usize) -> Option<usize> {
     for (offset, byte) in bytes.iter().enumerate().skip(index) {
         match byte {
             b'{' => depth += 1,
+            // `checked_sub`, not `-=`: every caller passes the offset of
+            // a `{`, so the count cannot go negative — but the crate
+            // builds with overflow checks on precisely so a wrong number
+            // crashes rather than being reported, and a lexer is not the
+            // place to leave a panic resting on a caller's manners.
             b'}' => {
-                depth -= 1;
+                depth = depth.checked_sub(1)?;
                 if depth == 0 {
                     return Some(offset + 1 - index);
                 }
@@ -361,69 +371,52 @@ pub(crate) fn marks(text: &str) -> Vec<Mark> {
     let mut found: Vec<Mark> = Vec::new();
     let mut index = 0;
 
-    let note = |mark: Mark, found: &mut Vec<Mark>| {
-        if !found.contains(&mark) {
+    while index < bytes.len() {
+        let (mark, advanced) = mark_at(bytes, index);
+        if let Some(mark) = mark
+            && !found.contains(&mark)
+        {
             found.push(mark);
         }
-    };
-
-    while index < bytes.len() {
-        match bytes[index] {
-            b'{' if bytes.get(index + 1) == Some(&b'{') => {
-                if identifier_end(bytes, skip_space(bytes, index + 2)).is_some() {
-                    note(Mark::DoubleBrace, &mut found);
-                }
-                index += 2;
-                continue;
-            }
-            b'{' => {
-                let start = skip_space(bytes, index + 1);
-                if let Some(end) = identifier_end(bytes, start) {
-                    let closing = skip_space(bytes, end);
-                    if bytes.get(closing) == Some(&b',') {
-                        note(Mark::IcuArgument, &mut found);
-                    } else if bytes.get(closing) == Some(&b'}') {
-                        let digits = bytes[start..end].iter().all(u8::is_ascii_digit);
-                        note(
-                            if digits {
-                                Mark::Positional
-                            } else {
-                                Mark::SingleBrace
-                            },
-                            &mut found,
-                        );
-                    }
-                }
-            }
-            b'$' if bytes.get(index + 1) == Some(&b't') && bytes.get(index + 2) == Some(&b'(') => {
-                note(Mark::DollarT, &mut found);
-                index += 3;
-                continue;
-            }
-            _ => {}
-        }
-        index += 1;
+        index += advanced;
     }
     found
 }
 
+/// The mark starting at `index`, if any, and how far past it to carry on.
+fn mark_at(bytes: &[u8], index: usize) -> (Option<Mark>, usize) {
+    match bytes[index] {
+        b'{' if bytes.get(index + 1) == Some(&b'{') => {
+            let opened = skip_space(bytes, index + 2);
+            (identifier_end(bytes, opened).map(|_| Mark::DoubleBrace), 2)
+        }
+        b'{' => (brace_mark(bytes, index), 1),
+        b'$' if bytes.get(index + 1) == Some(&b't') && bytes.get(index + 2) == Some(&b'(') => {
+            (Some(Mark::DollarT), 3)
+        }
+        _ => (None, 1),
+    }
+}
+
+/// What a single `{` opens, read with no grammar in hand.
+fn brace_mark(bytes: &[u8], index: usize) -> Option<Mark> {
+    let start = skip_space(bytes, index + 1);
+    let end = identifier_end(bytes, start)?;
+    let closing = skip_space(bytes, end);
+    match bytes.get(closing) {
+        Some(b',') => Some(Mark::IcuArgument),
+        Some(b'}') if bytes[start..end].iter().all(u8::is_ascii_digit) => Some(Mark::Positional),
+        Some(b'}') => Some(Mark::SingleBrace),
+        _ => None,
+    }
+}
+
 /// Marks that live in the key set rather than in a message.
-pub(crate) fn key_marks(keys: &[String]) -> Vec<Mark> {
+pub(crate) fn key_marks(keys: &[&str]) -> Vec<Mark> {
     let mut found = Vec::new();
 
-    // A plural family: `item_one` beside `item_other`, sharing a base
-    // that at least two variants agree on.
-    let mut bases: Vec<&str> = Vec::new();
-    for key in keys {
-        let base = plural_base(key);
-        if base == key.as_str() {
-            continue;
-        }
-        if bases.contains(&base) {
-            found.push(Mark::PluralKeySuffix);
-            break;
-        }
-        bases.push(base);
+    if has_plural_family(keys) {
+        found.push(Mark::PluralKeySuffix);
     }
 
     // ARB: `@@locale` and a `@key` object beside a real `key`.
@@ -431,7 +424,7 @@ pub(crate) fn key_marks(keys: &[String]) -> Vec<Mark> {
     let has_sibling_metadata = keys.iter().any(|key| {
         key.strip_prefix('@')
             .filter(|rest| !rest.starts_with('@') && !rest.contains('.'))
-            .is_some_and(|rest| keys.iter().any(|other| other == rest))
+            .is_some_and(|rest| keys.contains(&rest))
     });
     if has_document_metadata && has_sibling_metadata {
         found.push(Mark::ArbMetadata);
@@ -447,6 +440,25 @@ pub(crate) fn key_marks(keys: &[String]) -> Vec<Mark> {
         found.push(Mark::SentenceKeys);
     }
     found
+}
+
+/// `item_one` beside `item_other` — two variants agreeing on a base.
+///
+/// One variant alone is not a family: `step_one` is an ordinary key in
+/// every project that numbers its steps.
+fn has_plural_family(keys: &[&str]) -> bool {
+    let mut bases: Vec<&str> = Vec::new();
+    for key in keys {
+        let base = plural_base(key);
+        if base == *key {
+            continue;
+        }
+        if bases.contains(&base) {
+            return true;
+        }
+        bases.push(base);
+    }
+    false
 }
 
 #[cfg(test)]
@@ -654,40 +666,28 @@ mod tests {
 
     #[test]
     fn a_plural_family_is_a_mark_and_a_lone_variant_is_not() {
-        let family = ["item_one".to_string(), "item_other".to_string()];
-        assert!(key_marks(&family).contains(&Mark::PluralKeySuffix));
-        let lone = ["step_one".to_string(), "title".to_string()];
-        assert!(!key_marks(&lone).contains(&Mark::PluralKeySuffix));
+        assert!(key_marks(&["item_one", "item_other"]).contains(&Mark::PluralKeySuffix));
+        assert!(!key_marks(&["step_one", "title"]).contains(&Mark::PluralKeySuffix));
     }
 
     /// ARB is identifiable from a catalogue with no project around it,
     /// which is what its decisive signature claims.
     #[test]
     fn arb_metadata_needs_both_halves() {
-        let arb = [
-            "@@locale".to_string(),
-            "greeting".to_string(),
-            "@greeting".to_string(),
-        ];
-        assert!(key_marks(&arb).contains(&Mark::ArbMetadata));
-
-        let only_document = ["@@locale".to_string(), "greeting".to_string()];
-        assert!(!key_marks(&only_document).contains(&Mark::ArbMetadata));
-
-        let only_sibling = ["greeting".to_string(), "@greeting".to_string()];
-        assert!(!key_marks(&only_sibling).contains(&Mark::ArbMetadata));
+        assert!(
+            key_marks(&["@@locale", "greeting", "@greeting"]).contains(&Mark::ArbMetadata),
+            "the document metadata and a sibling"
+        );
+        assert!(!key_marks(&["@@locale", "greeting"]).contains(&Mark::ArbMetadata));
+        assert!(!key_marks(&["greeting", "@greeting"]).contains(&Mark::ArbMetadata));
     }
 
     #[test]
     fn sentence_keys_are_a_mark_and_dotted_identifiers_are_not() {
-        let sentences = [
-            "Save file".to_string(),
-            "No catalogues found".to_string(),
-            "Extract".to_string(),
-        ];
+        let sentences = ["Save file", "No catalogues found", "Extract"];
         assert!(key_marks(&sentences).contains(&Mark::SentenceKeys));
 
-        let identifiers = ["manifest.command.title".to_string(), "nav.home".to_string()];
+        let identifiers = ["manifest.command.title", "nav.home"];
         assert!(!key_marks(&identifiers).contains(&Mark::SentenceKeys));
     }
 }

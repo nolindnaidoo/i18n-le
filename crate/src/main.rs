@@ -2,6 +2,7 @@ mod audit;
 mod catalogue;
 mod cli;
 mod identify;
+mod layout;
 mod library;
 mod locale;
 mod mcp;

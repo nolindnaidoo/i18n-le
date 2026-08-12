@@ -43,15 +43,9 @@ use serde::Serialize;
 use serde_json::Value;
 
 use crate::catalogue;
+use crate::layout::{self, ANCESTORS, Located};
 use crate::library::{self, Id, Layout, Manifest, Mark, Shape, Strength};
-use crate::locale;
 use crate::message;
-
-/// How far up to look for a manifest, a config, or a prefixed set's base
-/// file. Deep enough for a monorepo package nested a few levels down,
-/// shallow enough that a stray `package.json` near `/` is never the
-/// answer.
-const ANCESTORS: usize = 8;
 
 /// Caps on the call-site scan. It reads other people's source code, so
 /// it stays cheap and bounded rather than thorough.
@@ -106,14 +100,6 @@ pub(crate) struct Signal {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Located {
-    pub(crate) path: PathBuf,
-    /// The name this file is reported under.
-    pub(crate) name: String,
-    pub(crate) locale: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Identified {
     pub(crate) library: Id,
     /// As declared, when a manifest declared one.
@@ -149,17 +135,17 @@ pub(crate) fn identify(inputs: &[PathBuf], requested: Requested) -> Result<Ident
         }
     };
 
-    let (shape, keys_are_source, files) = read(inputs, &anchor, library)?;
+    let reading = layout::read(inputs, &anchor, library)?;
     Ok(Identified {
         library,
         version: declared_version(&anchor, library),
-        shape,
-        keys_are_source,
+        shape: reading.shape,
+        keys_are_source: reading.keys_are_source,
         evidence: evidence
             .into_iter()
             .filter(|signal| signal.library == library)
             .collect(),
-        files,
+        files: reading.files,
     })
 }
 
@@ -233,13 +219,9 @@ fn classes_for(evidence: &[Signal], id: Id) -> usize {
 }
 
 fn carries(evidence: &[Signal], id: Id, class: Class, mark: Mark) -> bool {
-    let wanted = serde_json::to_value(mark)
-        .ok()
-        .and_then(|value| value.as_str().map(str::to_string))
-        .unwrap_or_default();
-    evidence
-        .iter()
-        .any(|signal| signal.library == id && signal.class == class && signal.detail == wanted)
+    evidence.iter().any(|signal| {
+        signal.library == id && signal.class == class && signal.detail == mark.as_str()
+    })
 }
 
 fn unidentified(evidence: &[Signal]) -> String {
@@ -459,45 +441,71 @@ fn layout_signals(anchor: &Path, inputs: &[PathBuf]) -> Vec<Signal> {
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_default();
 
-    let mut signals = Vec::new();
-    for library in library::all() {
-        for layout in library.layouts {
-            if !layout.directories.is_empty() && !layout.directories.contains(&here.as_str()) {
-                continue;
-            }
-            // A directory of `<locale>.json` is what almost every
-            // project's translations look like, so that alone must not
-            // vote. A directory of `<locale>.arb` is another matter —
-            // one library writes that extension.
-            if let Shape::Shared { extension } = layout.shape
-                && extension == "json"
-                && layout.directories.is_empty()
-            {
-                continue;
-            }
-            if read_layout(inputs, anchor, layout).ok().flatten().is_some() {
-                signals.push(Signal {
-                    class: Class::Layout,
-                    library: library.id,
-                    detail: describe_shape(layout.shape),
-                });
-            }
-        }
-    }
-    signals
+    library::all()
+        .iter()
+        .flat_map(|library| {
+            library
+                .layouts
+                .iter()
+                .map(move |layout| (library.id, layout))
+        })
+        .filter(|(_, layout)| distinctive(layout, &here))
+        .filter(|(_, layout)| {
+            layout::read_layout(inputs, anchor, layout)
+                .ok()
+                .flatten()
+                .is_some()
+        })
+        .map(|(id, layout)| Signal {
+            class: Class::Layout,
+            library: id,
+            detail: layout::describe_shape(layout.shape),
+        })
+        .collect()
 }
 
-fn describe_shape(shape: Shape) -> String {
-    match shape {
-        Shape::Shared { extension } => format!("a directory of <locale>.{extension}"),
-        Shape::Fixed { prefix, extension } => format!("{prefix}.<locale>.{extension}"),
-        Shape::Namespaced { extension } => format!("<locale>/<namespace>.{extension}"),
+/// Whether a layout is distinctive enough for its files to be evidence.
+///
+/// A directory of `<locale>.json` is what almost every project's
+/// translations look like, so that alone must not vote. A directory of
+/// `<locale>.arb`, or a `bundle.l10n.*` prefix, is another matter — one
+/// library writes those. A layout that names its directories votes only
+/// from one of them.
+fn distinctive(layout: &Layout, here: &str) -> bool {
+    if !layout.directories.is_empty() {
+        return layout.directories.contains(&here);
     }
+    !matches!(layout.shape, Shape::Shared { extension: "json" })
 }
 
 /// The catalogues' own syntax — the strongest class, because it is what
 /// actually breaks at runtime.
 fn content_signals(anchor: &Path, inputs: &[PathBuf]) -> Vec<Signal> {
+    let marks = sampled_marks(anchor, inputs);
+    library::all()
+        .iter()
+        .flat_map(|library| {
+            library
+                .signatures
+                .iter()
+                .map(move |signature| (library.id, signature))
+        })
+        // A weak mark is recorded so a refusal can say what it saw, but
+        // it does not vote: `{name}` is prose in every library's
+        // catalogues, including the ones that do not read it.
+        .filter(|(_, signature)| signature.strength != Strength::Weak)
+        .filter(|(_, signature)| marks.contains(&signature.mark))
+        .map(|(id, signature)| Signal {
+            class: Class::Content,
+            library: id,
+            detail: signature.mark.as_str().to_string(),
+        })
+        .collect()
+}
+
+/// Every syntactic mark the sampled catalogues carry, read with no
+/// library in hand.
+fn sampled_marks(anchor: &Path, inputs: &[PathBuf]) -> Vec<Mark> {
     let mut marks: Vec<Mark> = Vec::new();
     for path in sample(anchor, inputs) {
         let Ok(text) = std::fs::read_to_string(&path) else {
@@ -506,52 +514,30 @@ fn content_signals(anchor: &Path, inputs: &[PathBuf]) -> Vec<Signal> {
         let Ok(parsed) = catalogue::parse(&text) else {
             continue;
         };
-        let keys: Vec<String> = parsed
+        let keys: Vec<&str> = parsed
             .entries
             .iter()
-            .map(|entry| entry.key.clone())
+            .map(|entry| entry.key.as_str())
             .collect();
-        for mark in message::key_marks(&keys) {
-            if !marks.contains(&mark) {
-                marks.push(mark);
-            }
-        }
-        for text in parsed
+        let from_messages = parsed
             .entries
             .iter()
             .filter_map(|entry| entry.text.as_deref())
-        {
-            for mark in message::marks(text) {
-                if !marks.contains(&mark) {
-                    marks.push(mark);
-                }
-            }
+            .flat_map(message::marks);
+        for mark in message::key_marks(&keys).into_iter().chain(from_messages) {
+            note(&mut marks, mark);
         }
     }
+    marks
+}
 
-    let mut signals = Vec::new();
-    for library in library::all() {
-        for signature in library.signatures {
-            if !marks.contains(&signature.mark) {
-                continue;
-            }
-            // A weak mark is recorded so a refusal can say what it saw,
-            // but it does not vote: `{name}` is prose in every library's
-            // catalogues, including the ones that do not read it.
-            if signature.strength == Strength::Weak {
-                continue;
-            }
-            signals.push(Signal {
-                class: Class::Content,
-                library: library.id,
-                detail: serde_json::to_value(signature.mark)
-                    .ok()
-                    .and_then(|value| value.as_str().map(str::to_string))
-                    .unwrap_or_default(),
-            });
-        }
+/// The marks are a set held in discovery order — a `Vec` because there
+/// are eight of them and a refusal reads better listing them the way it
+/// found them.
+fn note(marks: &mut Vec<Mark>, mark: Mark) {
+    if !marks.contains(&mark) {
+        marks.push(mark);
     }
-    signals
 }
 
 /// Catalogue files to read for content evidence, layout-independently.
@@ -562,37 +548,18 @@ fn sample(anchor: &Path, inputs: &[PathBuf]) -> Vec<PathBuf> {
             found.push(input.clone());
         }
     }
-    found.extend(catalogues_in(anchor));
+    found.extend(layout::catalogues_in(anchor));
     if found.is_empty() {
         // The namespaced layout keeps its catalogues one level down.
         for entry in std::fs::read_dir(anchor).into_iter().flatten().flatten() {
             if entry.file_type().is_ok_and(|kind| kind.is_dir()) {
-                found.extend(catalogues_in(&entry.path()));
+                found.extend(layout::catalogues_in(&entry.path()));
             }
         }
     }
     found.sort();
     found.dedup();
     found.truncate(MAX_SAMPLED);
-    found
-}
-
-fn catalogues_in(directory: &Path) -> Vec<PathBuf> {
-    let mut found = Vec::new();
-    for entry in std::fs::read_dir(directory).into_iter().flatten().flatten() {
-        if !entry.file_type().is_ok_and(|kind| kind.is_file()) {
-            continue;
-        }
-        let path = entry.path();
-        if path
-            .extension()
-            .and_then(|extension| extension.to_str())
-            .is_some_and(|extension| extension == "json" || extension == "arb")
-        {
-            found.push(path);
-        }
-    }
-    found.sort();
     found
 }
 
@@ -762,300 +729,6 @@ fn major_of(spec: &str) -> Option<u64> {
         .take_while(char::is_ascii_digit)
         .collect();
     digits.parse().ok()
-}
-
-// ---------------------------------------------------------------------
-// Reading the set, once the library is known
-// ---------------------------------------------------------------------
-
-struct Reading {
-    files: Vec<Located>,
-    shape: Shape,
-    keys_are_source: bool,
-}
-
-fn read(
-    inputs: &[PathBuf],
-    anchor: &Path,
-    library: Id,
-) -> Result<(Shape, bool, Vec<Located>), String> {
-    let row = library.library();
-    let mut refusal = None;
-    for layout in row.layouts {
-        match read_layout(inputs, anchor, layout) {
-            Ok(Some(reading)) => {
-                return Ok((reading.shape, reading.keys_are_source, reading.files));
-            }
-            Ok(None) => {}
-            // Kept rather than returned: another layout of the same
-            // library may still read these files cleanly, and only if
-            // none does is this the answer.
-            Err(problem) => refusal = Some(problem),
-        }
-    }
-    if let Some(problem) = refusal {
-        return Err(problem);
-    }
-    // A directory with no catalogues in it at all is not a malformed
-    // question — there is simply nothing to be wrong with, and the
-    // report says so with `no-files`.
-    let empty = row.layouts.iter().all(|layout| match layout.shape {
-        Shape::Shared { extension }
-        | Shape::Fixed { extension, .. }
-        | Shape::Namespaced { extension } => collect(inputs, extension).is_empty(),
-    });
-    if empty && let Some(layout) = row.layouts.first() {
-        return Ok((layout.shape, layout.keys_are_source, Vec::new()));
-    }
-    Err(format!(
-        "{} was identified, but none of its layouts reads the files here ({}).",
-        library.as_str(),
-        row.layouts
-            .iter()
-            .map(|layout| describe_shape(layout.shape))
-            .collect::<Vec<_>>()
-            .join(", ")
-    ))
-}
-
-fn read_layout(
-    inputs: &[PathBuf],
-    anchor: &Path,
-    layout: &Layout,
-) -> Result<Option<Reading>, String> {
-    match layout.shape {
-        Shape::Shared { extension } => shared(inputs, extension, layout),
-        Shape::Fixed { prefix, extension } => fixed(inputs, anchor, prefix, extension, layout),
-        Shape::Namespaced { extension } => namespaced(inputs, extension, layout),
-    }
-}
-
-fn collect(inputs: &[PathBuf], extension: &str) -> Vec<PathBuf> {
-    let mut files = Vec::new();
-    for input in inputs {
-        if input.is_file() {
-            files.push(input.clone());
-            continue;
-        }
-        files.extend(
-            catalogues_in(input)
-                .into_iter()
-                .filter(|path| has_extension(path, extension)),
-        );
-    }
-    files.sort();
-    files.dedup();
-    files
-}
-
-fn has_extension(path: &Path, extension: &str) -> bool {
-    path.extension()
-        .and_then(|found| found.to_str())
-        .is_some_and(|found| found == extension)
-}
-
-fn shared(inputs: &[PathBuf], extension: &str, layout: &Layout) -> Result<Option<Reading>, String> {
-    let files = collect(inputs, extension);
-    if files.is_empty() {
-        return Ok(None);
-    }
-    // A flat set's names are only readable together, so it must live in
-    // one directory.
-    one_directory(&files)?;
-
-    let names: Vec<String> = files.iter().map(|path| name_of(path)).collect();
-    // Propagated rather than swallowed: it names the file that is not a
-    // locale, which is exactly what a person pointing this at the wrong
-    // directory needs to read. Evidence gathering discards it, so a
-    // directory that merely does not fit this layout still votes
-    // nothing rather than exploding.
-    let locales = locale::locales_of(&names)?;
-    Ok(Some(Reading {
-        files: zip(&files, names, locales),
-        shape: layout.shape,
-        keys_are_source: layout.keys_are_source,
-    }))
-}
-
-/// A prefix the library fixes makes each name readable on its own, which
-/// is what lets the set span two directories.
-///
-/// **This is the layout that matters most in practice.** Every VS Code
-/// extension puts `package.nls.json` in its root and its translations
-/// wherever the build wants them, and nothing before this could audit
-/// that shape at all.
-fn fixed(
-    inputs: &[PathBuf],
-    anchor: &Path,
-    prefix: &str,
-    extension: &str,
-    layout: &Layout,
-) -> Result<Option<Reading>, String> {
-    let mut files: Vec<PathBuf> = collect(inputs, extension)
-        .into_iter()
-        .filter(|path| name_of(path).starts_with(prefix))
-        .collect();
-    if files.is_empty() {
-        return Ok(None);
-    }
-
-    let base = format!("{prefix}.{extension}");
-    if !files.iter().any(|path| name_of(path) == base) {
-        let found = anchor
-            .ancestors()
-            .take(ANCESTORS)
-            .map(|directory| directory.join(&base))
-            .find(|candidate| candidate.is_file());
-        if let Some(found) = found {
-            files.push(found);
-        }
-    }
-    files.sort();
-    files.dedup();
-
-    let names: Vec<String> = files.iter().map(|path| name_of(path)).collect();
-    let locales = names
-        .iter()
-        .map(|name| locale::from_prefix(name, prefix))
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(Some(Reading {
-        files: zip(&files, names, locales),
-        shape: layout.shape,
-        keys_are_source: layout.keys_are_source,
-    }))
-}
-
-/// `<root>/<locale>/<namespace>.json`.
-///
-/// One namespace is one set. Several are several sets, and auditing them
-/// together would compare `common.json` against `errors.json`, so they
-/// are named and the caller picks.
-fn namespaced(
-    inputs: &[PathBuf],
-    extension: &str,
-    layout: &Layout,
-) -> Result<Option<Reading>, String> {
-    let [root] = inputs else {
-        return Ok(None);
-    };
-    if !root.is_dir() {
-        return Ok(None);
-    }
-
-    let mut directories = Vec::new();
-    for entry in std::fs::read_dir(root).into_iter().flatten().flatten() {
-        if !entry.file_type().is_ok_and(|kind| kind.is_dir()) {
-            continue;
-        }
-        let name = entry.file_name().to_string_lossy().into_owned();
-        if locale::canonicalise(&name).is_none() {
-            return Ok(None);
-        }
-        directories.push(entry.path());
-    }
-    if directories.is_empty() {
-        return Ok(None);
-    }
-    directories.sort();
-
-    let mut namespaces: Vec<String> = Vec::new();
-    let mut files = Vec::new();
-    for directory in &directories {
-        for path in catalogues_in(directory)
-            .into_iter()
-            .filter(|path| has_extension(path, extension))
-        {
-            let name = name_of(&path);
-            if !namespaces.contains(&name) {
-                namespaces.push(name);
-            }
-            files.push(path);
-        }
-    }
-    if files.is_empty() {
-        return Ok(None);
-    }
-    if namespaces.len() > 1 {
-        namespaces.sort();
-        return Err(format!(
-            "this set has {} namespaces ({}) and a namespace is its own set. \
-             Name one namespace's files.",
-            namespaces.len(),
-            namespaces.join(", ")
-        ));
-    }
-
-    let located = files
-        .iter()
-        .map(|path| {
-            let tag = path
-                .parent()
-                .and_then(Path::file_name)
-                .map(|name| name.to_string_lossy().into_owned())
-                .unwrap_or_default();
-            let locale =
-                locale::canonicalise(&tag).ok_or_else(|| format!("{tag} is not a language tag"))?;
-            Ok(Located {
-                name: format!("{tag}/{}", name_of(path)),
-                locale: Some(locale),
-                path: path.clone(),
-            })
-        })
-        .collect::<Result<Vec<_>, String>>()?;
-    Ok(Some(Reading {
-        files: located,
-        shape: layout.shape,
-        keys_are_source: layout.keys_are_source,
-    }))
-}
-
-fn zip(files: &[PathBuf], names: Vec<String>, locales: Vec<Option<String>>) -> Vec<Located> {
-    files
-        .iter()
-        .zip(names)
-        .zip(locales)
-        .map(|((path, name), locale)| Located {
-            path: path.clone(),
-            name,
-            locale,
-        })
-        .collect()
-}
-
-fn one_directory(files: &[PathBuf]) -> Result<(), String> {
-    let directories: Vec<&Path> =
-        files
-            .iter()
-            .filter_map(|file| file.parent())
-            .fold(Vec::new(), |mut seen, parent| {
-                if !seen.contains(&parent) {
-                    seen.push(parent);
-                }
-                seen
-            });
-    if directories.len() > 1 {
-        return Err(format!(
-            "these files are in {} directories, and a set read by what its names share is one \
-             directory. Audit them one directory at a time.",
-            directories.len()
-        ));
-    }
-    Ok(())
-}
-
-/// The name a file is reported under: a base name, because a full path
-/// would put the machine that ran the audit into a report meant to be
-/// diffed against one from another machine.
-pub(crate) fn name_of(path: &Path) -> String {
-    path.file_name()
-        .unwrap_or(path.as_os_str())
-        .to_string_lossy()
-        .into_owned()
-}
-
-pub(crate) fn read_text(path: &Path) -> Result<String, String> {
-    let bytes = std::fs::read(path).map_err(|error| format!("{}: {error}", path.display()))?;
-    String::from_utf8(bytes).map_err(|_| format!("{}: not UTF-8 text", path.display()))
 }
 
 #[cfg(test)]

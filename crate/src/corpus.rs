@@ -204,10 +204,10 @@ mod tests {
         assert!(!corpus.marks.is_empty(), "the corpus marks nothing");
         for case in corpus.marks {
             let parsed = catalogue::parse(document(&case.file)).expect("the corpus parses");
-            let keys: Vec<String> = parsed
+            let keys: Vec<&str> = parsed
                 .entries
                 .iter()
-                .map(|entry| entry.key.clone())
+                .map(|entry| entry.key.as_str())
                 .collect();
             let mut found = message::key_marks(&keys);
             for text in parsed

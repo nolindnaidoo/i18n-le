@@ -28,6 +28,7 @@ hardening pass — see "Left for the owner" at the end.
 crate/src/
 ├── library.rs    the table: what each i18n library *is*, as data
 ├── identify.rs   the front door — evidence in, a library out
+├── layout.rs     the file set, once the library is known
 ├── catalogue.rs  the duplicate-preserving JSON reader
 ├── message.rs    reading one message under a *known* grammar
 ├── locale.rs     language tags
@@ -45,9 +46,14 @@ coverage floor per module**, enforced by the `coverage` job — which
 lists them by name, so renaming one turns the job red instead of quietly
 making it check nothing.
 
-- **`identify.rs` and `scan.rs` are the only modules allowed to touch
-  the filesystem.** Everything else tests from the corpus — no temp
-  directories, no flake.
+- **`identify.rs`, `layout.rs` and `scan.rs` are the only modules
+  allowed to touch the filesystem.** Everything else tests from the
+  corpus — no temp directories, no flake.
+- **`identify.rs` answers *which library*; `layout.rs` answers *which
+  files*.** The dependency runs one way — `identify.rs` calls into
+  `layout.rs`, never the reverse — including for the layout class of
+  evidence, which is nothing more than "these files read cleanly under
+  this shape".
 - **Identification runs first and everything is downstream of it.** It
   is not a helper the audit consults when stuck; the audit cannot start
   without an answer, because the grammar, the plural model, the metadata

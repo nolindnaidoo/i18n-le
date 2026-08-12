@@ -23,6 +23,7 @@ use serde::Serialize;
 use crate::audit::{self, Catalogue, Finding, Severity};
 use crate::catalogue;
 use crate::identify::{self, Requested, Signal};
+use crate::layout;
 use crate::library::{Id, Shape};
 
 /// The report's shape. A consumer branching on it needs to know when the
@@ -160,7 +161,7 @@ pub(crate) fn scan(
     let mut documents = Vec::new();
     let mut diagnostics = Vec::new();
     for file in &identified.files {
-        match identify::read_text(&file.path) {
+        match layout::read_text(&file.path) {
             Ok(content) => documents.push(Document {
                 name: file.name.clone(),
                 locale: file.locale.clone(),
@@ -298,10 +299,10 @@ fn resolve_source(files: &[Catalogue], wanted: Option<&str>) -> Result<usize, St
     if let Some(index) = files.iter().position(|file| file.path == wanted) {
         return Ok(index);
     }
-    let tag = crate::locale::canonicalise(wanted);
-    if let Some(index) = files
-        .iter()
-        .position(|file| tag.is_some() && file.locale == tag)
+    if let Some(tag) = crate::locale::canonicalise(wanted)
+        && let Some(index) = files
+            .iter()
+            .position(|file| file.locale.as_deref() == Some(tag.as_str()))
     {
         return Ok(index);
     }
