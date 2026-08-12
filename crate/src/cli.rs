@@ -169,6 +169,13 @@ fn parse(args: &[String]) -> Result<Cli, String> {
 }
 
 /// The human half. Every line restates something already on stdout.
+///
+/// Write failures are dropped rather than reported, and that is the one
+/// place in this crate where swallowing is right: the report has already
+/// been written, the exit code is already decided, and a closed stderr
+/// (`i18n-le … 2>/dev/null`, a `head` upstream) is a caller saying they
+/// do not want this half. Turning it into a refusal would fail a run
+/// that answered correctly.
 fn summarise(report: &Report) {
     let mut stderr = std::io::stderr().lock();
 
@@ -218,7 +225,7 @@ fn evidence(report: &Report) -> String {
         .system
         .evidence
         .iter()
-        .map(|signal| signal.detail.clone())
+        .map(|signal| signal.detail.as_str())
         .collect::<Vec<_>>()
         .join(", ")
 }

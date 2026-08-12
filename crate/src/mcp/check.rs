@@ -113,7 +113,7 @@ pub(crate) fn run(arguments: &Value) -> Result<Value, String> {
         .and_then(Value::as_bool)
         .unwrap_or(false);
 
-    let report = scan::report_for(
+    let mut report = scan::report_for(
         &documents,
         System {
             library,
@@ -147,7 +147,6 @@ pub(crate) fn run(arguments: &Value) -> Result<Value, String> {
         })
         .collect();
 
-    let mut report = report;
     report.findings.truncate(max_results);
     let count = report.findings.len();
     let data = serde_json::to_value(&report).expect("a report serializes");
@@ -244,10 +243,10 @@ fn read_max_results(arguments: &Value) -> Result<usize, String> {
     let Some(raw) = arguments.get("maxResults") else {
         return Ok(DEFAULT_MAX_RESULTS);
     };
-    let invalid = "maxResults must be a positive integer".to_string();
-    let value = raw.as_u64().ok_or(invalid.clone())?;
+    let invalid = "maxResults must be a positive integer";
+    let value = raw.as_u64().ok_or_else(|| invalid.to_string())?;
     if value < 1 {
-        return Err(invalid);
+        return Err(invalid.to_string());
     }
     Ok(usize::try_from(value)
         .unwrap_or(MAX_MAX_RESULTS)
