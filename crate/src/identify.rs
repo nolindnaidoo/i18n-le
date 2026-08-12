@@ -378,7 +378,7 @@ fn npm_signals(path: &Path, anchor: &Path) -> Vec<Signal> {
 /// indented keys under `dependencies:` and `dev_dependencies:`, which is
 /// how every pubspec in the world is written.
 fn pubspec_signals(path: &Path, anchor: &Path) -> Vec<Signal> {
-    let Ok(text) = std::fs::read_to_string(path) else {
+    let Some(text) = read_regular(path, MAX_MANIFEST_BYTES) else {
         return Vec::new();
     };
     let at = shown(path, anchor);
@@ -530,6 +530,10 @@ fn content_signals(anchor: &Path, inputs: &[PathBuf]) -> Vec<Signal> {
 fn sampled_marks(anchor: &Path, inputs: &[PathBuf]) -> Vec<Mark> {
     let mut marks: Vec<Mark> = Vec::new();
     for path in sample(anchor, inputs) {
+        // No `read_regular` guard here, and it is not an oversight:
+        // every path `sample` yields is a regular file already, because
+        // `catalogues_in` filters on the directory entry's own type and
+        // a named input goes through `Path::is_file`.
         let Ok(text) = std::fs::read_to_string(&path) else {
             continue;
         };
@@ -653,13 +657,11 @@ fn walk_source(
         if !is_source || *budget == 0 {
             continue;
         }
-        if std::fs::metadata(&path).is_ok_and(|meta| meta.len() > MAX_SOURCE_BYTES) {
+        let Some(text) = read_regular(&path, MAX_SOURCE_BYTES) else {
             continue;
-        }
+        };
         *budget -= 1;
-        if let Ok(text) = std::fs::read_to_string(&path) {
-            visit(&path, &text);
-        }
+        visit(&path, &text);
     }
     directories.sort();
     for child in directories {
@@ -667,12 +669,33 @@ fn walk_source(
     }
 }
 
+/// The text of a file at a name **somebody else's tree supplied**, when
+/// it is a regular file no larger than `cap`.
+///
+/// `read_to_string` on a FIFO blocks until something writes to it, and
+/// every path that reaches here is a name this tool did not choose — a
+/// `package.json`, a `pubspec.yaml`, a `.ts` under a project root. A
+/// pipe called `app.ts` is not a plausible file so much as a plausible
+/// way to hang a CI job forever, and the size cap that was already here
+/// never looked at what kind of thing it was measuring.
+fn read_regular(path: &Path, cap: u64) -> Option<String> {
+    let metadata = std::fs::metadata(path).ok()?;
+    if !metadata.is_file() || metadata.len() > cap {
+        return None;
+    }
+    std::fs::read_to_string(path).ok()
+}
+
+/// A manifest is small by every convention that writes one; the cap is
+/// there because the file is somebody else's, not because a real
+/// `package.json` ever approaches it.
+const MAX_MANIFEST_BYTES: u64 = 8 * 1024 * 1024;
+
 fn read_json(path: &Path) -> Option<Value> {
     // A manifest that will not parse is not a refusal: it is somebody
     // else's broken file, and the catalogues beside it may be fine.
-    std::fs::read_to_string(path)
-        .ok()
-        .and_then(|text| serde_json::from_str(&text).ok())
+    let text = read_regular(path, MAX_MANIFEST_BYTES)?;
+    serde_json::from_str(&text).ok()
 }
 
 // ---------------------------------------------------------------------
@@ -713,7 +736,7 @@ fn npm_version(path: &Path, row: &Library) -> Option<String> {
 }
 
 fn pubspec_version(path: &Path, row: &Library) -> Option<String> {
-    let text = std::fs::read_to_string(path).ok()?;
+    let text = read_regular(path, MAX_MANIFEST_BYTES)?;
     pubspec_dependencies(&text)
         .into_iter()
         .filter(|(package, _)| row.package(package, Manifest::Pubspec).is_some())

@@ -9,6 +9,16 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **A file is read only when it is a regular file.** The call-site scan
+  refused a source file over 512 KB and never asked what kind of thing
+  it was measuring, so a FIFO named `app.ts` — or a `package.json` or a
+  `pubspec.yaml` that was one — blocked the read until something wrote
+  to it, which for a pipe nobody owns is forever. Manifests pick up an
+  8 MiB ceiling with the same reasoning: the path is a name somebody
+  else's tree supplied, and no real `package.json` comes near it. The
+  catalogue reads needed no guard and say so in a comment — every path
+  they get is already a regular file.
+
 - **A config file counts only in an extension that library writes.**
   Matching the stem alone meant `l10n.json` — a translation bundle — and
   `l10n.ts` — a module — each cast a config vote for flutter-arb, and
