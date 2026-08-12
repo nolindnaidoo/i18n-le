@@ -41,9 +41,22 @@ on any conflict.
 - **Refusals from `scan.rs`, `audit.rs` and `library.rs` may not name a
   flag.** They reach an MCP caller too, and a test asserts it.
   `identify.rs` and `cli.rs` may, because only a terminal reaches them.
-- **Adding a library is a row in `library.rs`.** If it needs a change
-  anywhere else except one new `Mark` predicate in `message.rs`, the
-  table is wrong — fix the table, not the caller.
+- **Adding a library is a row in `library.rs`** — as long as everything
+  it needs already exists. Packages, config stems and their extensions,
+  call-site substrings, layouts, grammar, plurals and metadata are all
+  data, and so are the four enums they choose from. What is *not* a row,
+  and what to expect if the new library needs one:
+  - a genuinely new syntax → one new `Mark` and its predicate in
+    `message.rs`;
+  - a new `Manifest` kind (a `Cargo.toml`, a `composer.json`) → a reader
+    in `identify.rs` beside `npm_signals` and `pubspec_signals`, plus
+    `npm_version`/`pubspec_version`'s equivalent and `check_version`;
+  - a new `Shape`, `Plurals`, `Metadata` or `Interpolation` variant →
+    the build breaks at every `match` that has to decide about it, which
+    is the design working. Fix those; never reach for a catch-all arm.
+
+  Anything else needing a change outside the table means the table is
+  wrong — fix the table, not the caller.
 - **The pure modules are `library.rs`, `catalogue.rs`, `message.rs`,
   `locale.rs` and `audit.rs`**, they carry a 90% coverage floor, and CI
   lists them by name. Renaming one means updating

@@ -128,10 +128,12 @@ the claim themselves.
 | **vscode-l10n** | `@vscode/l10n`, or the `l10n` field | `l10n/bundle.l10n.<locale>.json`, **and** root `package.nls.json` with translations elsewhere | sentence keys, `{0}` | none |
 | **flutter-arb** | `flutter_localizations`, `intl` (pubspec) | `<anything>_<locale>.arb` | `@@locale` with `@key` siblings, ICU | ICU |
 
-**Adding a library is a row in `library.rs`**, not a change anywhere
-else. A genuinely new syntax needs one new `Mark` and its predicate in
-`message.rs`; packages, config files, call sites, layouts, grammar,
-plurals and metadata are all data.
+**Adding a library is a row in `library.rs`** — packages, config stems
+and their extensions, call sites, layouts, grammar, plurals and metadata
+are all data. A genuinely new *syntax* needs one new `Mark` and its
+predicate in `message.rs`, and a library declared in a manifest kind
+nothing reads yet needs a reader beside the `package.json` and
+`pubspec.yaml` ones. Nothing else.
 
 `pubspec.yaml` is read by a line scan, not a YAML parser — it answers
 one question ("does this name a package I know?") and a YAML dependency

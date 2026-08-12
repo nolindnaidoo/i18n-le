@@ -63,8 +63,13 @@ making it check nothing.
   is a bug, and a contract test asserts the two return identical reports
   for the same catalogues.
 - **`library.rs` holds the tables and none of the I/O.** Adding a
-  library is a row there. If adding one needs a change anywhere else
-  except a new `Mark` predicate in `message.rs`, the table is wrong.
+  library is a row there, as long as everything it needs already exists.
+  A genuinely new syntax also needs one `Mark` predicate in
+  `message.rs`; a new `Manifest` kind needs a reader in `identify.rs`; a
+  new `Shape`, `Plurals`, `Metadata` or `Interpolation` variant breaks
+  the build at every `match` that has to decide about it, which is the
+  design working. Anything *else* outside the table means the table is
+  wrong. `CLAUDE.md` lists this precisely.
 - **`identify.rs` reads; `library.rs` decides what a reading means.**
 - Keep modules flat. No layers, registries, managers, or services. No
   trait with a single implementation.
@@ -288,11 +293,11 @@ Named here so none of it reads as an oversight:
   would block the read for as long as nothing writes to it. The
   siblings' `tests/hazards.rs` is where that class of input belongs and
   this has no equivalent.
-- **A new `Manifest` kind is not just a row.** Adding a library is, as
-  long as it declares itself somewhere already read. A library declared
-  in a `Cargo.toml` or a `composer.json` needs a reader in `identify.rs`
-  beside `npm_signals` and `pubspec_signals`, and `declared_version` and
-  `check_version` with it.
+- **A library declared in a manifest kind nothing reads yet.** Adding
+  one is a reader in `identify.rs` beside `npm_signals` and
+  `pubspec_signals`, with `declared_version` and `check_version`
+  following. Stated above and in `CLAUDE.md` so "adding a library is a
+  row" is not read as more than it claims.
 - **Formats beyond JSON/ARB** are a documented deferral, not a plan. A
   library row can now *describe* one; the parser is still the work.
 - **Plural-category completeness**, which needs a CLDR rule set.
