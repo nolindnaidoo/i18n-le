@@ -24,6 +24,7 @@
 //! raw key set, and a reader that had already dropped `@greeting` would
 //! have destroyed the evidence that says the file is ARB.
 
+use std::collections::HashMap;
 use std::fmt;
 
 use serde::de::{Deserializer, MapAccess, SeqAccess, Visitor};
@@ -93,11 +94,7 @@ pub(crate) fn parse(content: &str) -> Result<Parsed, String> {
 
 fn walk(prefix: &str, object: &[(String, Node)], parsed: &mut Parsed) {
     for (name, node) in resolve(prefix, object, parsed) {
-        let key = if prefix.is_empty() {
-            name
-        } else {
-            format!("{prefix}.{name}")
-        };
+        let key = path(prefix, name);
         match node {
             Node::Text(text) => parsed.entries.push(Entry {
                 key,
@@ -121,37 +118,54 @@ fn walk(prefix: &str, object: &[(String, Node)], parsed: &mut Parsed) {
     }
 }
 
+fn path(prefix: &str, name: &str) -> String {
+    if prefix.is_empty() {
+        return name.to_string();
+    }
+    format!("{prefix}.{name}")
+}
+
 /// One entry per distinct name, in first-appearance order, carrying the
 /// **last** value written for it.
 ///
 /// Last, because that is what every JSON loader hands the application —
 /// reporting the duplicate while comparing the first would answer a
 /// question about a file the runtime never sees.
+///
+/// One pass and a map, rather than a scan per name: this ran over every
+/// pair for every pair, so a flat catalogue cost time in the square of
+/// its key count — 0.73s at 12,000 keys and 2.93s at 24,000 on the
+/// machine this was measured on. Order is still the vector's, so the
+/// map never decides anything a reader can see.
 fn resolve<'a>(
     prefix: &str,
     object: &'a [(String, Node)],
     parsed: &mut Parsed,
-) -> Vec<(String, &'a Node)> {
-    let mut resolved: Vec<(String, &'a Node)> = Vec::new();
+) -> Vec<(&'a str, &'a Node)> {
+    let mut resolved: Vec<(&'a str, &'a Node)> = Vec::new();
+    let mut occurrences: Vec<usize> = Vec::new();
+    let mut first: HashMap<&'a str, usize> = HashMap::new();
+
     for (name, node) in object {
-        match resolved.iter().position(|(seen, _)| seen == name) {
-            Some(index) => resolved[index].1 = node,
-            None => resolved.push((name.clone(), node)),
+        // Both indexes come from `first`, which only ever holds
+        // positions this loop pushed.
+        if let Some(&at) = first.get(name.as_str()) {
+            resolved[at].1 = node;
+            occurrences[at] += 1;
+            continue;
         }
+        first.insert(name.as_str(), resolved.len());
+        resolved.push((name.as_str(), node));
+        occurrences.push(1);
     }
 
-    for (name, _) in &resolved {
-        let occurrences = object.iter().filter(|(seen, _)| seen == name).count();
-        if occurrences < 2 {
+    for ((name, _), count) in resolved.iter().zip(&occurrences) {
+        if *count < 2 {
             continue;
         }
         parsed.duplicates.push(Duplicate {
-            key: if prefix.is_empty() {
-                name.clone()
-            } else {
-                format!("{prefix}.{name}")
-            },
-            occurrences,
+            key: path(prefix, name),
+            occurrences: *count,
         });
     }
     resolved
@@ -346,6 +360,32 @@ mod tests {
     #[test]
     fn malformed_json_is_refused_rather_than_guessed_at() {
         assert!(parse("{\"a\":").is_err());
+    }
+
+    /// The visitor recurses, and so does `serde_json` reading into it.
+    /// A document nested past the reader's own limit has to come back as
+    /// a refusal rather than take the process down with it: `scan.rs`
+    /// turns a refusal into an `unparsable` diagnostic and audits the
+    /// rest of the set, where a stack overflow loses every locale.
+    #[test]
+    fn a_document_nested_past_the_readers_limit_is_refused_rather_than_crashing() {
+        let depth = 2_000;
+        let document = format!("{}\"leaf\"{}", "{\"a\":".repeat(depth), "}".repeat(depth));
+        assert!(parse(&document).is_err());
+    }
+
+    /// A key repeated a great many times is still one entry and one
+    /// duplicate, and it is resolved in one pass rather than one scan
+    /// per occurrence.
+    #[test]
+    fn a_key_repeated_many_times_is_counted_once() {
+        let repeats = 500;
+        let pairs: Vec<String> = (0..repeats).map(|n| format!("\"a\":\"{n}\"")).collect();
+        let parsed = parse(&format!("{{{}}}", pairs.join(","))).expect("parses");
+        assert_eq!(parsed.entries.len(), 1);
+        assert_eq!(parsed.entries[0].text.as_deref(), Some("499"));
+        assert_eq!(parsed.duplicates.len(), 1);
+        assert_eq!(parsed.duplicates[0].occurrences, repeats);
     }
 
     #[test]
