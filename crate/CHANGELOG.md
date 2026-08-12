@@ -9,6 +9,16 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **`system.version` reads whichever manifest identified the library.**
+  It read `package.json` and nothing else, so a Flutter project —
+  identified from `intl: ^0.19.0` in its `pubspec.yaml`, with no
+  `package.json` anywhere in the tree — was reported with
+  `"version": null` by the same run that quoted that manifest as its
+  evidence. The pubspec line scan is now one reader shared by the signal
+  and the version. A package named without a version, which is how
+  Flutter's own SDK packages are declared, is still not a version, and
+  no longer ends the search for one.
+
 - **A `skipped` diagnostic no longer carries an absolute path.** The
   message was the read error verbatim, and that error names the file in
   full — so two machines auditing the same repository produced different

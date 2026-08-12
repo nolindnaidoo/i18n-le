@@ -49,7 +49,7 @@ use serde_json::Value;
 
 use crate::catalogue;
 use crate::layout::{self, ANCESTORS, Located};
-use crate::library::{self, Id, Layout, Manifest, Mark, Shape, Strength};
+use crate::library::{self, Id, Layout, Library, Manifest, Mark, Shape, Strength};
 use crate::message;
 
 /// Caps on the call-site scan. It reads other people's source code, so
@@ -383,8 +383,29 @@ fn pubspec_signals(path: &Path, anchor: &Path) -> Vec<Signal> {
     };
     let at = shown(path, anchor);
     let mut signals = Vec::new();
-    let mut inside = false;
+    for (package, _) in pubspec_dependencies(&text) {
+        for library in library::all() {
+            if library.package(package, Manifest::Pubspec).is_some() {
+                signals.push(Signal {
+                    class: Class::Manifest,
+                    library: library.id,
+                    detail: format!("{package} in {at}"),
+                });
+            }
+        }
+    }
+    signals
+}
 
+/// Every dependency line of a `pubspec.yaml`, as `(package, version)`.
+///
+/// A package written without a version — `flutter_localizations:` with
+/// an `sdk:` line under it, which is how Flutter's own SDK packages are
+/// declared — comes back with an empty one, and an empty version is not
+/// a version.
+fn pubspec_dependencies(text: &str) -> Vec<(&str, &str)> {
+    let mut found = Vec::new();
+    let mut inside = false;
     for line in text.lines() {
         let trimmed = line.trim_end();
         if !trimmed.starts_with(char::is_whitespace) && !trimmed.is_empty() {
@@ -394,20 +415,12 @@ fn pubspec_signals(path: &Path, anchor: &Path) -> Vec<Signal> {
         if !inside {
             continue;
         }
-        let Some((package, _)) = trimmed.trim().split_once(':') else {
+        let Some((package, version)) = trimmed.trim().split_once(':') else {
             continue;
         };
-        for library in library::all() {
-            if library.package(package.trim(), Manifest::Pubspec).is_some() {
-                signals.push(Signal {
-                    class: Class::Manifest,
-                    library: library.id,
-                    detail: format!("{} in {at}", package.trim()),
-                });
-            }
-        }
+        found.push((package.trim(), version.trim()));
     }
-    signals
+    found
 }
 
 fn config_signals(anchor: &Path) -> Vec<Signal> {
@@ -662,27 +675,46 @@ fn read_json(path: &Path) -> Option<Value> {
 // Version
 // ---------------------------------------------------------------------
 
+/// The version the manifest that identified this library declared.
+///
+/// **Whichever manifest kind that was.** Reading only `package.json`
+/// meant a Flutter project — identified from `intl: ^0.19.0` in its
+/// `pubspec.yaml`, with no `package.json` anywhere — was reported with
+/// a null version by the same run that had just quoted the manifest as
+/// its evidence.
+///
+/// The first version that can actually be read wins. A package named
+/// without one does not end the search: `flutter_localizations:` sits
+/// above `intl: ^0.19.0` in the same file and is not an answer.
 fn declared_version(anchor: &Path, library: Id) -> Option<String> {
     let row = library.library();
-    for directory in anchor.ancestors().take(ANCESTORS) {
-        // `continue`, not `?`: the catalogues' own directory rarely has a
-        // manifest, and returning at the first one that does not would
-        // never look any higher.
-        let Some(manifest) = read_json(&directory.join("package.json")) else {
-            continue;
-        };
-        for section in ["dependencies", "devDependencies", "peerDependencies"] {
-            let Some(entries) = manifest.get(section).and_then(Value::as_object) else {
-                continue;
-            };
-            for (package, spec) in entries {
-                if row.package(package, Manifest::Npm).is_some() {
-                    return spec.as_str().map(str::to_string);
-                }
-            }
-        }
-    }
-    None
+    // The catalogues' own directory rarely holds a manifest, so this
+    // looks all the way up rather than stopping at the first that has
+    // none.
+    anchor.ancestors().take(ANCESTORS).find_map(|directory| {
+        npm_version(&directory.join("package.json"), row)
+            .or_else(|| pubspec_version(&directory.join("pubspec.yaml"), row))
+    })
+}
+
+fn npm_version(path: &Path, row: &Library) -> Option<String> {
+    let manifest = read_json(path)?;
+    ["dependencies", "devDependencies", "peerDependencies"]
+        .into_iter()
+        .filter_map(|section| manifest.get(section).and_then(Value::as_object))
+        .flatten()
+        .filter(|(package, _)| row.package(package, Manifest::Npm).is_some())
+        .find_map(|(_, spec)| spec.as_str().filter(|spec| !spec.is_empty()))
+        .map(str::to_string)
+}
+
+fn pubspec_version(path: &Path, row: &Library) -> Option<String> {
+    let text = std::fs::read_to_string(path).ok()?;
+    pubspec_dependencies(&text)
+        .into_iter()
+        .filter(|(package, _)| row.package(package, Manifest::Pubspec).is_some())
+        .find(|(_, version)| !version.is_empty())
+        .map(|(_, version)| version.to_string())
 }
 
 /// The only version gate: a major below which the library's own model
@@ -1019,6 +1051,28 @@ mod tests {
         let identified = found(&tree, "lib/l10n");
         assert_eq!(identified.library, Id::FlutterArb);
         assert!(classes(&identified).contains(&Class::Manifest));
+        assert_eq!(
+            identified.version.as_deref(),
+            Some("^0.19.0"),
+            "the manifest that identified it is the one quoted back"
+        );
+    }
+
+    /// A package declared without a version — which is how Flutter's own
+    /// SDK packages are written — is not a version. Reporting `""` would
+    /// be worse than reporting nothing.
+    #[test]
+    fn a_pubspec_package_with_no_version_does_not_invent_one() {
+        let tree = TempTree::new("identify-pubspec-sdk");
+        tree.write(
+            "pubspec.yaml",
+            "name: app\ndependencies:\n  flutter_localizations:\n    sdk: flutter\n",
+        );
+        tree.write("lib/l10n/app_en.arb", r#"{"greeting":"Hi {name}"}"#);
+        tree.write("lib/l10n/app_es.arb", r#"{"greeting":"Hola {name}"}"#);
+        let identified = found(&tree, "lib/l10n");
+        assert_eq!(identified.library, Id::FlutterArb);
+        assert_eq!(identified.version, None);
     }
 
     /// **The one version gate**, and it names a real break rather than
