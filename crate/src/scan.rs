@@ -523,6 +523,61 @@ mod tests {
         }
     }
 
+    /// **Every free-form string that reaches an answer**, in one place.
+    /// `Evidence` cannot hold a sentence and that is checked elsewhere;
+    /// these three are `String`s that only review keeps honest, so the
+    /// review is written down as a test. A diagnostic carries the
+    /// parser's message, a signal carries what was seen and where, and a
+    /// summary carries a file name — none of them a value.
+    #[test]
+    fn no_string_field_in_a_report_carries_a_translated_value() {
+        let report = report_for(
+            &[
+                document("en.json", Some("en"), r#"{"a":"Welcome back","b":"Save"}"#),
+                document(
+                    "es.json",
+                    Some("es"),
+                    r#"{"a":"Bienvenido de nuevo","z":"Sobrante"}"#,
+                ),
+                document("fr.json", Some("fr"), r#"{"a":"Bon retour"#),
+            ],
+            System {
+                version: Some("^26.2.0".to_string()),
+                evidence: vec![Signal {
+                    class: crate::identify::Class::Manifest,
+                    library: Id::I18next,
+                    detail: "i18next in ../package.json".to_string(),
+                }],
+                ..system(Id::I18next)
+            },
+            &ScanOptions::default(),
+        )
+        .expect("a report");
+
+        let strings = [
+            report
+                .diagnostics
+                .iter()
+                .map(|diagnostic| diagnostic.message.clone())
+                .collect::<Vec<_>>(),
+            report
+                .system
+                .evidence
+                .iter()
+                .map(|signal| signal.detail.clone())
+                .collect(),
+            report.files.iter().map(|file| file.path.clone()).collect(),
+            report.system.version.clone().into_iter().collect(),
+        ]
+        .concat();
+        assert!(!strings.is_empty(), "nothing was checked");
+        for carried in strings {
+            for translated in ["Bienvenido", "Bon retour", "Sobrante", "Welcome back"] {
+                assert!(!carried.contains(translated), "{carried}");
+            }
+        }
+    }
+
     #[test]
     fn a_catalogue_that_will_not_parse_is_named_rather_than_dropped() {
         let report = report(&[

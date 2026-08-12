@@ -392,4 +392,34 @@ mod tests {
     fn an_empty_catalogue_yields_nothing() {
         assert_eq!(parse("{}").expect("parses"), Parsed::default());
     }
+
+    /// **The privacy boundary's blind spot, held shut.** A refusal here
+    /// becomes an `unparsable` diagnostic in the report and on the MCP
+    /// surface, and a `String` is the one thing on that path the types
+    /// cannot vet. It has to name the position and the token it wanted,
+    /// never the bytes it was reading — every case below is a real way a
+    /// catalogue breaks, each with a translation sitting next to the
+    /// break.
+    #[test]
+    fn a_refusal_names_the_position_and_never_the_content() {
+        for document in [
+            r#"{"a":"Bienvenido de nuevo""#,
+            r#"{"a":"Bienvenido", }"#,
+            r#"{"a": Bienvenido}"#,
+            r#"{"a":"Bienvenido"} Bienvenido"#,
+            "{\"a\":\"Bienv\u{1}enido\"}",
+            r#"{"a":"Bienvenido\q"}"#,
+            r#"{"a":"Bienvenido\ud800"}"#,
+            r#"{"Bienvenido"}"#,
+            r#"{a:"Bienvenido"}"#,
+            r#"{"a":'Bienvenido'}"#,
+            r#"{"a":"Bienvenido",,}"#,
+            r#"{"a":1e999999,"b":"Bienvenido"}"#,
+            r#"["Bienvenido"]"#,
+            r#""Bienvenido""#,
+        ] {
+            let refusal = parse(document).expect_err(document);
+            assert!(!refusal.contains("Bienvenido"), "{refusal}");
+        }
+    }
 }
