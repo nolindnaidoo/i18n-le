@@ -27,6 +27,11 @@
 //! was found. There is no fallback that guesses, because guessing is
 //! the thing this replaced.
 //!
+//! **Which files the set is, once the answer is in hand, is
+//! `layout.rs`.** This module calls into it and never the reverse —
+//! including for the layout class above, which is nothing more than
+//! "these files read cleanly under this shape".
+//!
 //! ## The call-site boundary
 //!
 //! Source files are read here, and **only** here, and **only** to answer
