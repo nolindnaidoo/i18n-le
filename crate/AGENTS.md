@@ -18,9 +18,10 @@ in another.
 opinion; this answers a yes-or-no question and the exit code is the
 product. There is nothing to grep and nothing to pipe onward.
 
-**Status: v0.3.0 core.** Identification, both surfaces, the corpus and
-the test layers below are built and green. It has not been through a
-hardening pass — see "Left for the owner" at the end.
+**Status: v0.3.0 core, hardened.** Identification, both surfaces, the
+corpus and every test layer below are built and green, and CI runs all
+of them. What is deliberately still absent is listed under "Left for the
+owner" at the end.
 
 ## Layout
 
@@ -255,6 +256,36 @@ translated value.
   `tests/scenarios.rs`**, gated behind `I18N_LE_SCENARIOS`. A skipped
   scenario is never reported as a pass; each one says plainly that it
   did not run.
+- **Five more layers, one per class of bug that reaches a release**, and
+  none of them touches the network. Each has its own CI job:
+  - `tests/hazards.rs` — inputs a real machine holds and a fixture
+    directory cannot: a byte-order mark, undecodable bytes, UTF-16, a
+    FIFO, permission denied, a symlink loop, a 260-character path, an
+    empty catalogue, a fifty-megabyte one and one nested fifty thousand
+    deep. Built at runtime, because Windows cannot check half of it into
+    git, and every case the platform cannot express is skipped **by
+    name**. Each case names which of the three outcomes it expects —
+    audited, `skipped`, `unparsable` — because the fourth, a catalogue
+    that vanishes from the report, reads as a catalogue that was clean.
+  - `tests/platform.rs` — the separator in every reported path, `TZ`
+    independence, a case-folding filesystem, reserved Windows names,
+    CRLF against LF, and the two stdio cases. A sibling shipped `\` on
+    Windows for a whole release; this is why.
+  - `tests/fuzz.rs` — seeded and time-boxed by `I18N_LE_FUZZ_SECONDS`,
+    aimed at the placeholder lexer through the MCP surface and at
+    identification precedence through generated projects. Every
+    generated catalogue carries one sentence that may never appear in an
+    answer.
+  - `tests/budget.rs` — a wall-clock ceiling and linearity in three
+    directions, gated behind `I18N_LE_BUDGET`. It exists because
+    duplicate resolution was quadratic in a catalogue's key count and a
+    green suite said nothing about it.
+  - `tests/coverage_matrix.rs` — every library, layout shape, evidence
+    class, finding kind, severity, construct, mark, diagnostic code,
+    status and refusal reason reachable from a real project, and nothing
+    produced that the documentation does not name. Prints marker lines
+    CI counts, because `cargo test <filter>` exits 0 when the filter
+    matches nothing.
 - **Every bug fix ships with a regression test** that fails before the
   fix. The printf narrowing above is one: it was green in the suite and
   wrong against a real catalogue. **Run the binary, not only the tests.**
@@ -262,6 +293,12 @@ translated value.
   in a pure module's tests**.
 
 ## Verification — the definition of done
+- **Commits are conventional and CI enforces it.** The `commits` job in
+  `.github/workflows/ci-crate.yml` validates every pushed commit's subject
+  against the same pattern and the same 72-character cap as
+  `.githooks/commit-msg`. The hook is opt-in per clone (`git config
+  core.hooksPath .githooks`), so `--no-verify` and a fresh checkout defer
+  the check to CI rather than escaping it. Scopes may be comma-separated.
 
 All of it, before every push:
 
@@ -269,7 +306,18 @@ All of it, before every push:
 cargo fmt --all --check
 cargo clippy --all-targets -- -D warnings
 cargo test --locked
-I18N_LE_SCENARIOS=1 cargo test --test scenarios   # before a release
+```
+
+Before a release, also the gated tiers — gated so a bare `cargo test`
+stays fast, not because they are optional. CI runs every one of them on
+every push:
+
+```bash
+cargo test --test hazards && cargo test --test platform
+cargo test --test coverage_matrix -- --nocapture
+I18N_LE_FUZZ_SECONDS=60 cargo test --test fuzz -- --test-threads=1 --nocapture
+I18N_LE_BUDGET=1 cargo test --test budget -- --test-threads=1 --nocapture
+I18N_LE_SCENARIOS=1 cargo test --test scenarios
 ```
 
 A change is not done because it compiles; it is done when it is tested,
@@ -288,11 +336,6 @@ Named here so none of it reads as an oversight:
 - **No `crate-v*` tagging convention.** `release-crate.yml` is
   dispatch-only and reads the version from `Cargo.toml`, so nothing tags
   the commit that was released.
-- **Nothing checks the file kind before reading it.** The call-site scan
-  refuses a source file over 512 KB but not a FIFO named `x.ts`, which
-  would block the read for as long as nothing writes to it. The
-  siblings' `tests/hazards.rs` is where that class of input belongs and
-  this has no equivalent.
 - **A library declared in a manifest kind nothing reads yet.** Adding
   one is a reader in `identify.rs` beside `npm_signals` and
   `pubspec_signals`, with `declared_version` and `check_version`

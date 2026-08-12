@@ -7,6 +7,27 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **Five hardening tiers, one per class of bug that reaches a release**,
+  each with its own CI job: `hazards` (byte-order marks, undecodable
+  bytes, UTF-16, a FIFO, permission denied, a symlink loop, a
+  260-character path, a fifty-megabyte catalogue and one nested fifty
+  thousand deep), `platform` (path separators, `TZ`, case folding,
+  reserved Windows names, CRLF, stdio), `fuzz` (seeded and time-boxed
+  against the placeholder lexer and identification precedence), `budget`
+  (a wall-clock ceiling and linearity in three directions) and
+  `coverage_matrix` (every library, kind, construct, mark, status and
+  refusal reachable from a real project). `scenarios` is wired into CI
+  too — it existed since v0.3.0 and nothing ran it.
+- **`--help` names the libraries `--system` accepts.** It was the one
+  flag whose values were only discoverable from the help text, and the
+  help text did not list them.
+- **SPEC.md names the vocabulary the report actually carries** — the
+  five `construct` values, the three statuses and the two diagnostic
+  codes. All ten were emitted by the code and absent from the document,
+  so a consumer branching on them had nothing to read.
+
 ### Changed
 
 - **A file is read only when it is a regular file.** The call-site scan

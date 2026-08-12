@@ -10,6 +10,15 @@ on any conflict.
   `cargo fmt --all --check`,
   `cargo clippy --all-targets -- -D warnings`,
   `cargo test --locked`. All three must pass.
+- Before a release, also the gated tiers — CI runs every one of them on
+  every push, so a red one is not optional:
+  ```bash
+  cargo test --test hazards && cargo test --test platform
+  cargo test --test coverage_matrix -- --nocapture
+  I18N_LE_FUZZ_SECONDS=60 cargo test --test fuzz -- --test-threads=1 --nocapture
+  I18N_LE_BUDGET=1 cargo test --test budget -- --test-threads=1 --nocapture
+  I18N_LE_SCENARIOS=1 cargo test --test scenarios
+  ```
 - Never add inline `#[allow(...)]` or `#[expect(...)]`, in `src/` or in
   `tests/`. Fix the lint, or add a commented relaxation to
   `[lints.clippy]` or `[lints.rust]` in `Cargo.toml`. There are none
