@@ -1,0 +1,9 @@
+{
+  "eyebrow": "$t(metrics.window.{{timeframe}})",
+  "greeting": "Witaj ponownie, {{imie}}",
+  "item_one": "{{count}} element",
+  "item_few": "{{count}} elementy",
+  "item_many": "{{count}} elementów",
+  "item_other": "{{count}} elementu",
+  "legacy": "{count, plural, one {# element} other {# elementów}}"
+}

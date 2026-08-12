@@ -1,0 +1,5 @@
+{
+  "greeting": "Welcome back, {name}",
+  "items": "{count, plural, one {# item} other {# items}}",
+  "window": "in {timeframe}"
+}

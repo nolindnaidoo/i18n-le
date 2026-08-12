@@ -1,0 +1,4 @@
+{
+  "greeting": "Welcome back, {name}",
+  "items": "{count, plural, one {# item} other {# items}}"
+}

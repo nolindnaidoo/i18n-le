@@ -1,0 +1,984 @@
+[
+	{
+		"name": "an i18next set carrying one of every finding",
+		"files": [
+			"de.json",
+			"en.json",
+			"es.json",
+			"fr.json"
+		],
+		"arguments": {
+			"library": "i18next"
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 4,
+						"locale": "de",
+						"path": "de.json"
+					},
+					{
+						"keys": 6,
+						"locale": "en",
+						"path": "en.json"
+					},
+					{
+						"keys": 6,
+						"locale": "es",
+						"path": "es.json"
+					},
+					{
+						"keys": 6,
+						"locale": "fr",
+						"path": "fr.json"
+					}
+				],
+				"findings": [
+					{
+						"file": "de.json",
+						"key": "app",
+						"kind": "structure-mismatch",
+						"severity": "error",
+						"sourceShape": "object",
+						"targetShape": "text"
+					},
+					{
+						"file": "de.json",
+						"key": "footer",
+						"kind": "placeholder-style-mismatch",
+						"severity": "error",
+						"sourceStyle": "double-brace",
+						"targetStyle": "single-brace"
+					},
+					{
+						"file": "es.json",
+						"key": "app.title",
+						"kind": "untranslated",
+						"severity": "info"
+					},
+					{
+						"file": "es.json",
+						"key": "app.greeting",
+						"kind": "placeholder-count-mismatch",
+						"severity": "error",
+						"sourceCount": 1,
+						"targetCount": 0
+					},
+					{
+						"file": "es.json",
+						"key": "app.rank",
+						"kind": "placeholder-name-mismatch",
+						"severity": "error",
+						"sourceTokens": [
+							"rank",
+							"total"
+						],
+						"targetTokens": [
+							"cantidad",
+							"rank"
+						]
+					},
+					{
+						"file": "es.json",
+						"key": "footer",
+						"kind": "placeholder-name-mismatch",
+						"severity": "error",
+						"sourceTokens": [
+							"time"
+						],
+						"targetTokens": [
+							"hora"
+						]
+					},
+					{
+						"file": "es.json",
+						"key": "nav.settings",
+						"kind": "empty-value",
+						"severity": "warning"
+					},
+					{
+						"file": "fr.json",
+						"key": "app.greeting",
+						"kind": "duplicate-key-within-file",
+						"occurrences": 2,
+						"severity": "error"
+					},
+					{
+						"file": "fr.json",
+						"key": "app.rank",
+						"kind": "missing-key",
+						"severity": "error"
+					},
+					{
+						"file": "fr.json",
+						"key": "nav.logout",
+						"kind": "extra-key",
+						"severity": "error"
+					},
+					{
+						"file": "fr.json",
+						"key": "app.title",
+						"kind": "untranslated",
+						"severity": "info"
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 6,
+					"locale": "en",
+					"path": "en.json"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 4,
+					"findings": 11
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": false,
+					"layout": null,
+					"library": "i18next",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 11,
+				"tool": "check_catalogues",
+				"truncated": false
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "the source is a choice, not the union",
+		"files": [
+			"de.json",
+			"en.json",
+			"es.json",
+			"fr.json"
+		],
+		"arguments": {
+			"source": "de.json",
+			"library": "i18next"
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 4,
+						"locale": "de",
+						"path": "de.json"
+					},
+					{
+						"keys": 6,
+						"locale": "en",
+						"path": "en.json"
+					},
+					{
+						"keys": 6,
+						"locale": "es",
+						"path": "es.json"
+					},
+					{
+						"keys": 6,
+						"locale": "fr",
+						"path": "fr.json"
+					}
+				],
+				"findings": [
+					{
+						"file": "en.json",
+						"key": "app",
+						"kind": "structure-mismatch",
+						"severity": "error",
+						"sourceShape": "text",
+						"targetShape": "object"
+					},
+					{
+						"file": "en.json",
+						"key": "footer",
+						"kind": "placeholder-count-mismatch",
+						"severity": "error",
+						"sourceCount": 0,
+						"targetCount": 1
+					},
+					{
+						"file": "es.json",
+						"key": "app",
+						"kind": "structure-mismatch",
+						"severity": "error",
+						"sourceShape": "text",
+						"targetShape": "object"
+					},
+					{
+						"file": "es.json",
+						"key": "footer",
+						"kind": "placeholder-count-mismatch",
+						"severity": "error",
+						"sourceCount": 0,
+						"targetCount": 1
+					},
+					{
+						"file": "es.json",
+						"key": "nav.settings",
+						"kind": "empty-value",
+						"severity": "warning"
+					},
+					{
+						"file": "fr.json",
+						"key": "app.greeting",
+						"kind": "duplicate-key-within-file",
+						"occurrences": 2,
+						"severity": "error"
+					},
+					{
+						"file": "fr.json",
+						"key": "app",
+						"kind": "structure-mismatch",
+						"severity": "error",
+						"sourceShape": "text",
+						"targetShape": "object"
+					},
+					{
+						"file": "fr.json",
+						"key": "nav.logout",
+						"kind": "extra-key",
+						"severity": "error"
+					},
+					{
+						"file": "fr.json",
+						"key": "footer",
+						"kind": "placeholder-count-mismatch",
+						"severity": "error",
+						"sourceCount": 0,
+						"targetCount": 1
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 4,
+					"locale": "de",
+					"path": "de.json"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 4,
+					"findings": 9
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": false,
+					"layout": null,
+					"library": "i18next",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 9,
+				"tool": "check_catalogues",
+				"truncated": false
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "vscode manifest keys, dotted and positional",
+		"files": [
+			"package.nls.de.json",
+			"package.nls.ja.json",
+			"package.nls.json",
+			"package.nls.zh-cn.json"
+		],
+		"arguments": {
+			"library": "vscode-l10n"
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 3,
+						"locale": "de",
+						"path": "package.nls.de.json"
+					},
+					{
+						"keys": 3,
+						"locale": "ja",
+						"path": "package.nls.ja.json"
+					},
+					{
+						"keys": 3,
+						"locale": null,
+						"path": "package.nls.json"
+					},
+					{
+						"keys": 3,
+						"locale": "zh-CN",
+						"path": "package.nls.zh-cn.json"
+					}
+				],
+				"findings": [
+					{
+						"file": "package.nls.de.json",
+						"key": "manifest.command.category",
+						"kind": "untranslated",
+						"severity": "info"
+					},
+					{
+						"file": "package.nls.ja.json",
+						"key": "manifest.command.category",
+						"kind": "untranslated",
+						"severity": "info"
+					},
+					{
+						"file": "package.nls.ja.json",
+						"key": "manifest.status.summary",
+						"kind": "placeholder-count-mismatch",
+						"severity": "error",
+						"sourceCount": 2,
+						"targetCount": 1
+					},
+					{
+						"file": "package.nls.zh-cn.json",
+						"key": "manifest.command.category",
+						"kind": "untranslated",
+						"severity": "info"
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 3,
+					"locale": null,
+					"path": "package.nls.json"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 4,
+					"findings": 4
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": false,
+					"layout": null,
+					"library": "vscode-l10n",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 4,
+				"tool": "check_catalogues",
+				"truncated": false
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "a vscode bundle, where the key is the English string",
+		"files": [
+			"bundle.l10n.json",
+			"bundle.l10n.pt-br.json"
+		],
+		"arguments": {
+			"keysAreSource": true,
+			"library": "vscode-l10n"
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 2,
+						"locale": null,
+						"path": "bundle.l10n.json"
+					},
+					{
+						"keys": 2,
+						"locale": "pt-BR",
+						"path": "bundle.l10n.pt-br.json"
+					}
+				],
+				"findings": [
+					{
+						"file": "bundle.l10n.pt-br.json",
+						"key": "No catalogues found",
+						"kind": "untranslated",
+						"severity": "info"
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 2,
+					"locale": null,
+					"path": "bundle.l10n.json"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 2,
+					"findings": 1
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": true,
+					"layout": null,
+					"library": "vscode-l10n",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 1,
+				"tool": "check_catalogues",
+				"truncated": false
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "i18next nesting, plural key suffixes, and one construct from the wrong convention",
+		"files": [
+			"i18n.en.json",
+			"i18n.ja.json",
+			"i18n.pl.json"
+		],
+		"arguments": {
+			"library": "i18next"
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 5,
+						"locale": "en",
+						"path": "i18n.en.json"
+					},
+					{
+						"keys": 4,
+						"locale": "ja",
+						"path": "i18n.ja.json"
+					},
+					{
+						"keys": 7,
+						"locale": "pl",
+						"path": "i18n.pl.json"
+					}
+				],
+				"findings": [
+					{
+						"construct": "icu-argument",
+						"file": "i18n.en.json",
+						"key": "legacy",
+						"kind": "convention-mismatch",
+						"offset": 0,
+						"severity": "error"
+					},
+					{
+						"file": "i18n.ja.json",
+						"key": "eyebrow",
+						"kind": "untranslated",
+						"severity": "info"
+					},
+					{
+						"construct": "icu-argument",
+						"file": "i18n.pl.json",
+						"key": "legacy",
+						"kind": "convention-mismatch",
+						"offset": 0,
+						"severity": "error"
+					},
+					{
+						"file": "i18n.pl.json",
+						"key": "eyebrow",
+						"kind": "untranslated",
+						"severity": "info"
+					},
+					{
+						"file": "i18n.pl.json",
+						"key": "greeting",
+						"kind": "placeholder-name-mismatch",
+						"severity": "error",
+						"sourceTokens": [
+							"name"
+						],
+						"targetTokens": [
+							"imie"
+						]
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 5,
+					"locale": "en",
+					"path": "i18n.en.json"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 3,
+					"findings": 5
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": false,
+					"layout": null,
+					"library": "i18next",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 5,
+				"tool": "check_catalogues",
+				"truncated": false
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "the same ICU catalogues read as next-intl",
+		"files": [
+			"icu.en.json",
+			"icu.es.json"
+		],
+		"arguments": {
+			"library": "next-intl"
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 3,
+						"locale": "en",
+						"path": "icu.en.json"
+					},
+					{
+						"keys": 3,
+						"locale": "es",
+						"path": "icu.es.json"
+					}
+				],
+				"findings": [
+					{
+						"file": "icu.es.json",
+						"key": "greeting",
+						"kind": "placeholder-name-mismatch",
+						"severity": "error",
+						"sourceTokens": [
+							"name"
+						],
+						"targetTokens": [
+							"nombre"
+						]
+					},
+					{
+						"file": "icu.es.json",
+						"key": "window",
+						"kind": "placeholder-name-mismatch",
+						"severity": "error",
+						"sourceTokens": [
+							"timeframe"
+						],
+						"targetTokens": [
+							"periodo"
+						]
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 3,
+					"locale": "en",
+					"path": "icu.en.json"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 2,
+					"findings": 2
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": false,
+					"layout": null,
+					"library": "next-intl",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 2,
+				"tool": "check_catalogues",
+				"truncated": false
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "and read as i18next, where every ICU plural is a defect",
+		"files": [
+			"icu.en.json",
+			"icu.es.json"
+		],
+		"arguments": {
+			"library": "i18next"
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 3,
+						"locale": "en",
+						"path": "icu.en.json"
+					},
+					{
+						"keys": 3,
+						"locale": "es",
+						"path": "icu.es.json"
+					}
+				],
+				"findings": [
+					{
+						"construct": "icu-argument",
+						"file": "icu.en.json",
+						"key": "items",
+						"kind": "convention-mismatch",
+						"offset": 0,
+						"severity": "error"
+					},
+					{
+						"construct": "icu-argument",
+						"file": "icu.es.json",
+						"key": "items",
+						"kind": "convention-mismatch",
+						"offset": 0,
+						"severity": "error"
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 3,
+					"locale": "en",
+					"path": "icu.en.json"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 2,
+					"findings": 2
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": false,
+					"layout": null,
+					"library": "i18next",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 2,
+				"tool": "check_catalogues",
+				"truncated": false
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "arb metadata is skipped and the message is compared",
+		"files": [
+			"arb.en.arb",
+			"arb.es.arb"
+		],
+		"arguments": {
+			"library": "flutter-arb"
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 2,
+						"locale": "en",
+						"path": "arb.en.arb"
+					},
+					{
+						"keys": 2,
+						"locale": "es",
+						"path": "arb.es.arb"
+					}
+				],
+				"findings": [
+					{
+						"file": "arb.es.arb",
+						"key": "greeting",
+						"kind": "placeholder-name-mismatch",
+						"severity": "error",
+						"sourceTokens": [
+							"name"
+						],
+						"targetTokens": [
+							"nombre"
+						]
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 2,
+					"locale": "en",
+					"path": "arb.en.arb"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 2,
+					"findings": 1
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": false,
+					"layout": null,
+					"library": "flutter-arb",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 1,
+				"tool": "check_catalogues",
+				"truncated": false
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "capped and flagged",
+		"files": [
+			"de.json",
+			"en.json",
+			"es.json",
+			"fr.json"
+		],
+		"arguments": {
+			"maxResults": 2,
+			"library": "i18next"
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 4,
+						"locale": "de",
+						"path": "de.json"
+					},
+					{
+						"keys": 6,
+						"locale": "en",
+						"path": "en.json"
+					},
+					{
+						"keys": 6,
+						"locale": "es",
+						"path": "es.json"
+					},
+					{
+						"keys": 6,
+						"locale": "fr",
+						"path": "fr.json"
+					}
+				],
+				"findings": [
+					{
+						"file": "de.json",
+						"key": "app",
+						"kind": "structure-mismatch",
+						"severity": "error",
+						"sourceShape": "object",
+						"targetShape": "text"
+					},
+					{
+						"file": "de.json",
+						"key": "footer",
+						"kind": "placeholder-style-mismatch",
+						"severity": "error",
+						"sourceStyle": "double-brace",
+						"targetStyle": "single-brace"
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 6,
+					"locale": "en",
+					"path": "en.json"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 4,
+					"findings": 11
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": false,
+					"layout": null,
+					"library": "i18next",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 2,
+				"tool": "check_catalogues",
+				"truncated": true
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "a caller-supplied locale is believed over the file name",
+		"arguments": {
+			"library": "i18next",
+			"files": [
+				{
+					"path": "one.json",
+					"locale": "en",
+					"content": "{\"a\":\"Hello {{name}}\"}"
+				},
+				{
+					"path": "two.json",
+					"locale": "pt-br",
+					"content": "{\"a\":\"Ola {{nome}}\"}"
+				}
+			]
+		},
+		"expected": {
+			"data": {
+				"diagnostics": [],
+				"files": [
+					{
+						"keys": 1,
+						"locale": "en",
+						"path": "one.json"
+					},
+					{
+						"keys": 1,
+						"locale": "pt-BR",
+						"path": "two.json"
+					}
+				],
+				"findings": [
+					{
+						"file": "two.json",
+						"key": "a",
+						"kind": "placeholder-name-mismatch",
+						"severity": "error",
+						"sourceTokens": [
+							"name"
+						],
+						"targetTokens": [
+							"nome"
+						]
+					}
+				],
+				"schema": 3,
+				"source": {
+					"keys": 1,
+					"locale": "en",
+					"path": "one.json"
+				},
+				"status": "findings",
+				"summary": {
+					"files": 2,
+					"findings": 1
+				},
+				"system": {
+					"evidence": [],
+					"keysAreSource": false,
+					"layout": null,
+					"library": "i18next",
+					"version": null
+				}
+			},
+			"diagnostics": [],
+			"meta": {
+				"count": 1,
+				"tool": "check_catalogues",
+				"truncated": false
+			},
+			"ok": true
+		}
+	},
+	{
+		"name": "the library is required and cannot be guessed",
+		"arguments": {
+			"files": [
+				{
+					"path": "en.json",
+					"content": "{}"
+				}
+			]
+		},
+		"expectedError": "library is required and must be one of i18next, next-intl, vscode-l10n, flutter-arb. It cannot be worked out from file contents alone, and guessing it is what this tool exists not to do."
+	},
+	{
+		"name": "a library this does not read is refused",
+		"arguments": {
+			"library": "gettext",
+			"files": [
+				{
+					"path": "en.json",
+					"content": "{}"
+				}
+			]
+		},
+		"expectedError": "gettext is not a library this reads. Try one of i18next, next-intl, vscode-l10n, flutter-arb."
+	},
+	{
+		"name": "files are required",
+		"arguments": {
+			"library": "i18next"
+		},
+		"expectedError": "files is required and must be a non-empty array of { path, content }"
+	},
+	{
+		"name": "an empty list is refused",
+		"arguments": {
+			"library": "i18next",
+			"files": []
+		},
+		"expectedError": "files is required and must be a non-empty array of { path, content }"
+	},
+	{
+		"name": "a locale that is not a language tag is refused",
+		"arguments": {
+			"library": "i18next",
+			"files": [
+				{
+					"path": "en.json",
+					"locale": "Spanish",
+					"content": "{}"
+				}
+			]
+		},
+		"expectedError": "Spanish is not a language tag"
+	},
+	{
+		"name": "a set that is not a catalogue set is refused rather than audited",
+		"arguments": {
+			"library": "i18next",
+			"files": [
+				{
+					"path": "package.json",
+					"content": "{}"
+				},
+				{
+					"path": "tsconfig.json",
+					"content": "{}"
+				}
+			]
+		},
+		"expectedError": "package.json: \"package\" is not a language tag, so this is not a catalogue set"
+	}
+]

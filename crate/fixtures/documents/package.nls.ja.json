@@ -1,0 +1,5 @@
+{
+  "manifest.command.category": "Ledgerline",
+  "manifest.command.check.title": "カタログを確認",
+  "manifest.status.summary": "{0} 件の指摘"
+}

@@ -1,0 +1,8 @@
+{
+  "app": "Übersicht",
+  "nav": {
+    "home": "Start",
+    "settings": "Einstellungen"
+  },
+  "footer": "Aktualisiert {time}"
+}

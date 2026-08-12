@@ -1,0 +1,3 @@
+# Build output. `Cargo.lock` is committed on purpose: this ships a
+# binary, so the exact dependency graph CI builds is the one a user gets.
+crate/target/

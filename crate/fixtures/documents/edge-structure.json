@@ -1,0 +1,8 @@
+{
+  "app": "flattened",
+  "nav": {
+    "home": "Home",
+    "settings": "Settings"
+  },
+  "footer": "Updated {{time}}"
+}

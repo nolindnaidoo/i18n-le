@@ -1,0 +1,6 @@
+{
+  "eyebrow": "$t(metrics.window.{{timeframe}})",
+  "greeting": "おかえりなさい、{{name}}",
+  "item_other": "{{count}} 個",
+  "legacy": "{count} 個"
+}

@@ -1,0 +1,9 @@
+{
+  "a": "one",
+  "b": "two",
+  "a": "three",
+  "nested": {
+    "x": "first",
+    "x": "second"
+  }
+}

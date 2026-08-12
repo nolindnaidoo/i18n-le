@@ -1,0 +1,6 @@
+{
+  "greeting": "Welcome back, {{name}}",
+  "eyebrow": "$t(metrics.window.{{timeframe}})",
+  "item_one": "{{count}} item",
+  "item_other": "{{count}} items"
+}

@@ -1,0 +1,11 @@
+{
+  "@@locale": "es",
+  "greeting": "Bienvenido de nuevo, {nombre}",
+  "@greeting": {
+    "description": "Shown on the home screen"
+  },
+  "items": "{count, plural, other {# elementos}}",
+  "@items": {
+    "placeholders": { "count": { "type": "int" } }
+  }
+}

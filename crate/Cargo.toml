@@ -1,0 +1,69 @@
+[package]
+name = "i18n-le"
+version = "0.3.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+readme = "README.md"
+description = "Audit translation catalogues for missing keys, placeholder drift and structural mismatches"
+authors = ["Nolin D Naidoo"]
+homepage = "https://letools.dev/tools/i18n-le"
+repository = "https://github.com/nolindnaidoo/i18n-le"
+keywords = ["i18n", "l10n", "translation", "audit", "cli"]
+categories = ["command-line-utilities", "development-tools", "internationalization"]
+# What a consumer gets, and why.
+#
+# Ships: src/, Cargo.toml, Cargo.lock, LICENSE, README.md — needed to
+# build the binary. SPEC.md and CHANGELOG.md — the behavioural contract
+# someone scripting against the exit codes needs. tests/ and fixtures/ —
+# not needed to *build*, but needed to *verify*: `cargo test` on the
+# unpacked tarball runs the full corpus, so the refusal claims in the
+# README are checkable by whoever installed it rather than taken on
+# trust.
+#
+# Excluded: AGENTS.md and CLAUDE.md are how this repo is worked on, not
+# how the tool is used. rust-toolchain.toml is a convenience for
+# contributors to *this* checkout; shipped, it would pin the toolchain
+# of anyone who unpacks or vendors the crate.
+exclude = ["AGENTS.md", "CLAUDE.md", "rust-toolchain.toml"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+# JSON in, and the report out. The catalogue reader is a hand-written
+# `Visitor` rather than `serde_json::Value` on purpose: `Value` folds a
+# duplicate key into the last one silently, and `duplicate-key-within-file`
+# is one of the seven checks.
+serde_json = "1"
+
+# Deliberately absent, so the reasons are on the record rather than in a
+# commit message:
+#
+# - `regex` — the placeholder lexer needs byte offsets and has to honour
+#   `{{` and `%%` as literals. That is a hand-written scanner in every
+#   language; a pattern that got it subtly wrong would manufacture
+#   findings, which is the one failure mode this tool is designed
+#   against.
+# - `ignore` (the sibling's walker) — a catalogue directory is flat by
+#   every convention this reads, and a recursive walk would sweep up
+#   `package.json` and force the tool to guess what a catalogue is.
+#   Discovery is one `read_dir` per named directory.
+# - `unic-langid` — it validates against the full BCP-47 registry. This
+#   only ever shape-checks one filename segment and must refuse anything
+#   unusual anyway, so the registry would buy a maintenance surface and
+#   no answer this does not already have.
+
+[profile.release]
+strip = true
+lto = "thin"
+codegen-units = 1
+# An overflow here would be a wrong offset or a wrong count in an answer
+# someone is about to act on. Crashing beats reporting a number that is
+# quietly wrong.
+overflow-checks = true
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }

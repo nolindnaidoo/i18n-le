@@ -1,0 +1,5 @@
+{
+  "manifest.command.category": "Ledgerline",
+  "manifest.command.check.title": "检查目录",
+  "manifest.status.summary": "{1} 个目录中有 {0} 个问题"
+}

@@ -1,0 +1,5 @@
+{
+  "greeting": "Bienvenido de nuevo, {nombre}",
+  "items": "{count, plural, other {# elementos}}",
+  "window": "en {periodo}"
+}

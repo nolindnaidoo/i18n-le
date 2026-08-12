@@ -1,0 +1,5 @@
+{
+  "manifest.command.category": "Ledgerline",
+  "manifest.command.check.title": "Check catalogues",
+  "manifest.status.summary": "{0} findings in {1} catalogues"
+}

@@ -1,0 +1,5 @@
+{
+  "braces": "Use {{ to open a literal brace and }} to close it",
+  "percent": "100%% done",
+  "prose": "Write {} for an empty object, and 50% is half"
+}
