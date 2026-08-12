@@ -107,7 +107,7 @@ i18next, and literal text in a VS Code bundle, and no amount of looking
 at the bytes settles which. Being told does.
 
 **Two libraries identified is a refusal naming both.** i18next *and*
-react-intl in one manifest has two answers, and nothing can know which
+next-intl in one manifest has two answers, and nothing can know which
 these files belong to. **Nothing identified is a refusal too**, listing
 every signal it did find. There is no fallback that guesses — guessing
 is what this replaced.
@@ -230,8 +230,8 @@ usage: i18n-le [options] <dir|file>...
   --source <path|locale>   the catalogue every other is measured against
   --keys-are-source        the key is the English string
   --fail-on <what>         untranslated, or any
-  --strict                 also fail when a file could not be read or a
-                           check was refused
+  --strict                 also fail when a catalogue could not be read
+                           or parsed
 ```
 
 A *shared* set is one directory: its names are only readable together,
@@ -241,7 +241,7 @@ library supplies the naming rule.
 ## Output
 
 stdout is protocol, stderr is human. One JSON report for the whole run —
-`schema: 1`, `severity` on every finding, and **no timestamp**, because
+`schema: 3`, `severity` on every finding, and **no timestamp**, because
 a report is a thing to diff.
 
 ```json
@@ -254,12 +254,12 @@ a report is a thing to diff.
     "layout": { "shape": "shared", "extension": "json" },
     "keysAreSource": false,
     "evidence": [
-      { "class": "manifest", "detail": "i18next in ../package.json" },
-      { "class": "content", "detail": "double-brace" }
+      { "class": "manifest", "library": "i18next", "detail": "i18next in ../package.json" },
+      { "class": "content", "library": "i18next", "detail": "double-brace" }
     ]
   },
   "source": { "path": "en.json", "locale": "en", "keys": 708 },
-  "grammar": "named-double",
+  "files": [{ "path": "es.json", "locale": "es", "keys": 706 }],
   "findings": [
     {
       "severity": "error",
@@ -270,6 +270,7 @@ a report is a thing to diff.
       "targetTokens": ["periodo"]
     }
   ],
+  "diagnostics": [],
   "summary": { "files": 25, "findings": 1 }
 }
 ```

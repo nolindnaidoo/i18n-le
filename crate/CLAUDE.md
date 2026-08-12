@@ -28,7 +28,9 @@ on any conflict.
   the boundary is written into SPEC.md so it cannot erode.
 - **No translated value ever reaches an answer.** The enforcement is
   `Evidence` having no variant that can hold a sentence. Adding one that
-  could is the one change this crate cannot take.
+  could is the one change this crate cannot take. The free-form strings
+  beside it — a `Signal`'s `detail`, a `Diagnostic`'s `message` — are
+  held by review, not by the type, so read them before you widen one.
 - **The exit code is the product.** 0 clean, 1 findings, 2 could not
   answer; no catalogues is 0. Do not "improve" that into a failure.
 - **`untranslated` is `info`.** It must not fail a run by default. A
@@ -49,8 +51,12 @@ on any conflict.
   against; changing it is a behaviour change and needs a CHANGELOG
   entry. **No real product name goes in a fixture** — this repository is
   public, and a test asserts it.
+- **`identify.rs` answers which library; `layout.rs` answers which
+  files.** The dependency runs one way and must stay that way — nothing
+  in `layout.rs` may learn what a manifest or a call site is.
 - Write regression tests for every bug you fix; keep unit tests free of
-  clocks, randomness, and the filesystem outside `identify`/`scan`.
+  clocks, randomness, and the filesystem outside
+  `identify`/`layout`/`scan`.
 - **Run the binary, not only the tests.** The printf false-positive on
   Hungarian "90%-os" was green in a full suite and wrong against a real
   catalogue set.

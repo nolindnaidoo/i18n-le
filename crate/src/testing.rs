@@ -1,8 +1,8 @@
 //! A throwaway directory tree, for the modules that genuinely need a
 //! filesystem.
 //!
-//! `detect/` never does — that is the point of the split — so this is
-//! only ever used by `discover` and `scan`.
+//! The pure modules never do — that is the point of the split — so this
+//! is only ever used by `identify` and `scan`.
 //!
 //! The root is canonicalised on creation. On macOS the temporary
 //! directory is itself a symlink (`/tmp` → `/private/tmp`), so a root

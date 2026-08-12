@@ -48,7 +48,8 @@ Options:
                            bundle.l10n.json
   --fail-on <what>         untranslated, or any — what else fails the run
                            besides the findings that already do
-  --strict                 also fail when a file could not be read
+  --strict                 also fail when a catalogue could not be read
+                           or parsed
 
 Exit codes: 0 clean · 1 findings · 2 malformed question. Finding no
 catalogues at all is 0 — there is nothing to be wrong with.";

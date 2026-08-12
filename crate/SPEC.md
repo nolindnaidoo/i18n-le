@@ -305,7 +305,10 @@ key is not a finding. Where the layout says the key *is* the English
 string, English reaches the report — that is the shape the VS Code
 bundle has, stated rather than hidden. A *translation* never does.
 
-**Paths are reported relative to the catalogues**, never absolute.
+**Paths are reported relative to the catalogues**, never absolute — with
+one exception, recorded in AGENTS.md rather than left to be discovered:
+a `skipped` diagnostic's `message` is the underlying read error and
+names the file it could not open in full.
 
 ## Formats
 
@@ -398,7 +401,8 @@ Options:
   --source <path|locale>   the catalogue every other is measured against
   --keys-are-source        the key is the English string
   --fail-on <what>         untranslated, or any
-  --strict                 also fail when a file could not be read
+  --strict                 also fail when a catalogue could not be read
+                           or parsed
 ```
 
 Exit codes: **0** clean · **1** findings · **2** malformed question.

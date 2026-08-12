@@ -72,11 +72,16 @@ making it check nothing.
 ## Decisions already made (do not relitigate)
 
 - **No translated value ever reaches an answer**, and the *types* are
-  what stop it. `Evidence` has five variants — tokens, counts, styles,
-  shapes, occurrences — and none of them can hold a sentence. Adding one
-  that could is the single change this crate cannot take. Three tests
-  enforce it: over the comparator, over the MCP surface, and over stdout
-  and stderr of a real run.
+  what stop it. `Evidence` has six variants — tokens, counts, styles,
+  shapes, occurrences, and a construct with a byte offset — and none of
+  them can hold a sentence. Adding one that could is the single change
+  this crate cannot take. Three tests enforce it: over the comparator,
+  over the MCP surface, and over stdout and stderr of a real run.
+  **`Evidence` is the enforced half, not the whole boundary.** A
+  `Signal`'s `detail`, a `Diagnostic`'s `message` and a `FileSummary`'s
+  `path` are free-form strings that nothing but review stops carrying a
+  value; they are built from package names, marks, fixed call
+  substrings, file names and parser positions, and must stay that way.
 - **Keys are the deliberate exception**, including under
   `--keys-are-source` where the key is itself the English string. A
   finding that will not name its key is not a finding. This is stated in
@@ -188,9 +193,11 @@ pixelactions, scrape-le and envsync-le:
   locale it cannot name, a set spanning two directories — all refusals
   with a reason, never a fabricated answer.
 - **Refusals speak both surfaces' vocabulary.** Every message from
-  `scan.rs` and `detect/` reaches a terminal *and* an agent, and only one
-  of them has a command line. A test asserts no message from the shared
-  layer contains `--`; only `cli.rs` may name a flag.
+  `scan.rs`, `catalogue.rs` and `locale.rs` reaches a terminal *and* an
+  agent, and only one of them has a command line. A test asserts no
+  message from that shared layer contains `--`. Only `cli.rs`,
+  `identify.rs` and `layout.rs` may name a flag, and only because the
+  MCP surface enters at `scan::report_for` and so never reaches them.
 
 ## The corpus contract
 
@@ -216,8 +223,9 @@ translated value.
 
 ## Testing
 
-- **`detect/` is pure and unit-tested.** Everything in it takes text and
-  returns findings; if something is hard to test there, the design is
+- **The pure modules are unit-tested from text alone.** `library.rs`,
+  `catalogue.rs`, `message.rs`, `locale.rs` and `audit.rs` take text and
+  return findings; if something is hard to test there, the design is
   wrong.
 - **Every refusal has a test**, and so does every identification path:
   two classes, a decisive signature alone, a conflict, nothing at all,
@@ -227,8 +235,9 @@ translated value.
   clean under next-intl, `convention-mismatch` under i18next. That pair
   is the whole architecture in one test.
 - **Identification is tested against temporary trees in `identify.rs`**,
-  because it is the only pure-logic-plus-filesystem module. Everything
-  it decides is data in `library.rs` and unit-tested there.
+  because it and `layout.rs` are the only pure-logic-plus-filesystem
+  modules and the second is only ever reached through the first.
+  Everything they decide is data in `library.rs` and unit-tested there.
 - **Exit codes belong in `tests/contracts.rs`.** They are the API —
   callers branch on them — so they are pinned by tests that drive the
   built binary against a temporary directory. A new refusal adds its
@@ -241,7 +250,7 @@ translated value.
   fix. The printf narrowing above is one: it was green in the suite and
   wrong against a real catalogue. **Run the binary, not only the tests.**
 - Tests are deterministic: no clocks, no randomness, and **no filesystem
-  in `detect/` tests**.
+  in a pure module's tests**.
 
 ## Verification — the definition of done
 
@@ -262,15 +271,37 @@ this file), and honest — claims in docs must match the code.
 
 Named here so none of it reads as an oversight:
 
-- **No CI.** No `ci-crate.yml`, no coverage job, no `cargo audit`, no
-  MSRV job, no no-inline-`#[allow]` policy job, no cross-OS matrix. The
-  sibling repos have all of these and this needs them copied.
-- **No coverage floor.** The sibling's `detect/` carries 90% per module,
-  enforced by a job. This has thorough unit tests but no measurement.
 - **No VS Code extension**, so no detection-parity script and no shared
   corpus with a second frontend. `fixtures/` is currently a contract
-  between this crate and itself.
-- **No release workflow** and no `crate-v*` tagging convention wired up.
+  between this crate and itself, and `ci-crate.yml` says in its own
+  header that the `parity` and `differential` jobs are absent rather
+  than vacuous until one exists.
+- **No `crate-v*` tagging convention.** `release-crate.yml` is
+  dispatch-only and reads the version from `Cargo.toml`, so nothing tags
+  the commit that was released.
+- **Nothing checks the file kind before reading it.** The call-site scan
+  refuses a source file over 512 KB but not a FIFO named `x.ts`, which
+  would block the read for as long as nothing writes to it. The
+  siblings' `tests/hazards.rs` is where that class of input belongs and
+  this has no equivalent.
+- **One absolute path can still reach the report.** SPEC.md says every
+  reported path is relative to the catalogues, and every one is —
+  except the `message` of a `skipped` diagnostic, which is
+  `identify::read_text`'s error and names the file it could not open in
+  full. It takes an unreadable catalogue to see, and it breaks the
+  property that two machines produce the same report for the same
+  repository. Fixing it changes what the tool prints, so it is written
+  down rather than done quietly.
+- **`system.version` is npm-only.** `declared_version` reads
+  `package.json` and nothing else, so a Flutter project that declares
+  `intl: ^0.19.0` in its `pubspec.yaml` is identified from it and then
+  reported with `"version": null`. The manifest class votes from both;
+  only one of them can be quoted back.
+- **A new `Manifest` kind is not just a row.** Adding a library is, as
+  long as it declares itself somewhere already read. A library declared
+  in a `Cargo.toml` or a `composer.json` needs a reader in `identify.rs`
+  beside `npm_signals` and `pubspec_signals`, and `declared_version` and
+  `check_version` with it.
 - **Formats beyond JSON/ARB** are a documented deferral, not a plan. A
   library row can now *describe* one; the parser is still the work.
 - **Plural-category completeness**, which needs a CLDR rule set.
