@@ -291,7 +291,11 @@ mod tests {
         ];
         for name in names {
             let text = document(name);
-            for leaked in ["SplitWinner", "splitwinner", "EdgeSeeker", "OffensiveEdge"] {
+            // Names from adjacent private work that reached these fixtures once.
+            // The list stays short and stays to names already public elsewhere:
+            // a guard that has to spell a private name in a public repository
+            // leaks the thing it was written to protect.
+            for leaked in ["SplitWinner", "splitwinner", "OffensiveEdge"] {
                 assert!(!text.contains(leaked), "{name} carries {leaked}");
             }
         }
