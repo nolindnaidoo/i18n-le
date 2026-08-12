@@ -167,9 +167,13 @@ pixelactions, scrape-le and envsync-le:
 
 ## Hard rules
 
-- **No inline `#[allow(...)]`.** Either fix the lint or add a visible,
-  commented relaxation to `[lints.clippy]` in `Cargo.toml`. There are
-  none today, and adding the first one needs a reason in the comment.
+- **No inline `#[allow(...)]` or `#[expect(...)]`, in `src/` or in
+  `tests/`.** Either fix the lint or add a visible, commented relaxation
+  to `[lints.clippy]` or `[lints.rust]` in `Cargo.toml`. There are none
+  today, and adding the first one needs a reason in the comment. The
+  `policy` job greps for both spellings across both directories,
+  because a gate that knows one of them is a gate that gets routed
+  around by accident.
 - **Clippy `all` + `pedantic`, deny warnings.** `cargo clippy
   --all-targets -- -D warnings` must pass exactly as written.
 - **No `anyhow`, no `thiserror`.** Fallible functions return

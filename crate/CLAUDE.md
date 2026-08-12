@@ -10,8 +10,10 @@ on any conflict.
   `cargo fmt --all --check`,
   `cargo clippy --all-targets -- -D warnings`,
   `cargo test --locked`. All three must pass.
-- Never add inline `#[allow(...)]`. Fix the lint, or add a commented
-  relaxation to `[lints.clippy]` in `Cargo.toml`. There are none today.
+- Never add inline `#[allow(...)]` or `#[expect(...)]`, in `src/` or in
+  `tests/`. Fix the lint, or add a commented relaxation to
+  `[lints.clippy]` or `[lints.rust]` in `Cargo.toml`. There are none
+  today, and CI greps for both spellings.
 - **Identification is the front door, not a helper.** It runs first and
   everything else is downstream of its answer: the placeholder grammar,
   the plural model, which keys are metadata, the layout. If you find
