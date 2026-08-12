@@ -28,6 +28,10 @@ categories = ["command-line-utilities", "development-tools", "internationalizati
 exclude = ["AGENTS.md", "CLAUDE.md", "rust-toolchain.toml"]
 
 [dependencies]
+# The report is the product — stdout is protocol — so it is derived from
+# the types that produce it rather than written by hand, which is what
+# stops a field being renamed in one place and not the other. `derive`
+# is the whole reason this is here; nothing hand-implements `Serialize`.
 serde = { version = "1", features = ["derive"] }
 # JSON in, and the report out. The catalogue reader is a hand-written
 # `Visitor` rather than `serde_json::Value` on purpose: `Value` folds a

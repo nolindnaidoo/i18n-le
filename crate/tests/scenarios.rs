@@ -57,7 +57,7 @@ fn run(args: &[&str]) -> (i32, serde_json::Value) {
     )
 }
 
-fn catalogue(keys: usize, value: &dyn Fn(usize) -> String) -> String {
+fn catalogue(keys: usize, value: impl Fn(usize) -> String) -> String {
     let mut content = String::from("{\n");
     for key in 0..keys {
         let separator = if key + 1 == keys { "" } else { "," };
@@ -79,7 +79,7 @@ fn a_full_locale_set_completes() {
     tree.i18next();
     tree.write(
         "locales/en.json",
-        &catalogue(4_000, &|key| format!("String {key} for {{{{name}}}}")),
+        &catalogue(4_000, |key| format!("String {key} for {{{{name}}}}")),
     );
     for locale in [
         "es", "fr", "de", "it", "nl", "pl", "ja", "ko", "tr", "cs", "ro", "sv", "nb", "da", "fi",
@@ -89,7 +89,7 @@ fn a_full_locale_set_completes() {
         // machine translation actually produces.
         tree.write(
             &format!("locales/{locale}.json"),
-            &catalogue(4_000, &|key| {
+            &catalogue(4_000, |key| {
                 let token = if key % 10 == 0 { "nombre" } else { "name" };
                 format!("Cadena {key} para {{{{{token}}}}}")
             }),
