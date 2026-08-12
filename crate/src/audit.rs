@@ -13,7 +13,7 @@
 //! before reaching this module.
 //!
 //! **No translated value crosses this boundary, and the types are what
-//! stop it.** A finding carries `Evidence`, which has five variants —
+//! stop it.** A finding carries `Evidence`, which has six variants —
 //! token names, counts, styles, shapes, occurrence counts and a
 //! construct with a byte offset. None of them can hold a sentence, so
 //! there is nothing to remember not to put in one. An `untranslated`
@@ -248,11 +248,12 @@ fn against(
     // A key whose text is already the finding is not compared further:
     // a `convention-mismatch` is the root cause, and a count difference
     // on top of it is the same defect reported twice.
-    let mismatched: HashSet<String> = convention_findings(target, options)
+    let conventions = convention_findings(target, options);
+    let mismatched: HashSet<String> = conventions
         .iter()
         .map(|finding| finding.key.clone())
         .collect();
-    findings.extend(convention_findings(target, options));
+    findings.extend(conventions);
 
     let index: HashMap<&str, &Entry> = target
         .entries
@@ -266,7 +267,13 @@ fn against(
     // one thing that is actually wrong buries the answer.
     let diverged = structure_findings(reference, &index, target, findings);
 
-    let fold = library.plurals == Plurals::KeySuffix;
+    // A `match` rather than a comparison, so a fifth plural model fails
+    // the build here instead of silently being audited as if it had
+    // none.
+    let fold = match library.plurals {
+        Plurals::KeySuffix => true,
+        Plurals::Icu | Plurals::None => false,
+    };
     let source_bases = bases(reference, fold);
     let target_bases = bases(target, fold);
     findings.extend(absent(
@@ -404,9 +411,7 @@ fn structure_findings(
 
 fn is_below(key: &str, diverged: &[String]) -> bool {
     diverged.iter().any(|prefix| {
-        key.len() > prefix.len()
-            && key.starts_with(prefix.as_str())
-            && key.as_bytes()[prefix.len()] == b'.'
+        key.starts_with(prefix.as_str()) && key.as_bytes().get(prefix.len()) == Some(&b'.')
     })
 }
 
