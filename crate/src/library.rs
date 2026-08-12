@@ -54,6 +54,32 @@ pub(crate) struct Package {
     pub(crate) breaking_below: Option<u64>,
 }
 
+/// A config file a library writes: the name without its extension, and
+/// the extensions it is actually written in.
+///
+/// **The extensions are the point.** Matching a stem alone made
+/// `l10n.json` — somebody's translation bundle — and `l10n.ts` —
+/// somebody's module — each cast a vote for Flutter, whose config is
+/// `l10n.yaml` and nothing else. A class of evidence that fires on a
+/// file nobody would call a config dilutes the corroboration rule it
+/// feeds.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Config {
+    pub(crate) stem: &'static str,
+    pub(crate) extensions: &'static [&'static str],
+}
+
+impl Config {
+    pub(crate) fn matches(&self, stem: &str, extension: &str) -> bool {
+        self.stem == stem && self.extensions.contains(&extension)
+    }
+}
+
+/// What a config in the JavaScript ecosystem is written in. One list,
+/// because three rows want the same one and a fourth spelling of it
+/// would drift from the other three.
+const JS_CONFIG: &[&str] = &["js", "cjs", "mjs", "ts", "mts", "cts", "json"];
+
 /// How the files of a set are named and where they sit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case", tag = "shape")]
@@ -201,10 +227,8 @@ impl Mark {
 pub(crate) struct Library {
     pub(crate) id: Id,
     pub(crate) packages: &'static [Package],
-    /// Config file **stems**: matched against a real name with any
-    /// extension, so `i18next-parser.config` catches `.js`, `.ts`,
-    /// `.mjs` and `.json`.
-    pub(crate) configs: &'static [&'static str],
+    /// Config files this library writes, by stem and extension.
+    pub(crate) configs: &'static [Config],
     /// Fixed substrings that appear at a call site.
     ///
     /// **Identification only.** Source files are read to answer "which
@@ -273,7 +297,16 @@ const ALL: &[Library] = &[
                 breaking_below: None,
             },
         ],
-        configs: &["i18next-parser.config", "next-i18next.config"],
+        configs: &[
+            Config {
+                stem: "i18next-parser.config",
+                extensions: JS_CONFIG,
+            },
+            Config {
+                stem: "next-i18next.config",
+                extensions: JS_CONFIG,
+            },
+        ],
         // `$t(` is deliberately absent: it appears in Vue templates and
         // in plenty of unrelated code, and it is already a content mark
         // where it is trustworthy — inside a catalogue.
@@ -320,7 +353,10 @@ const ALL: &[Library] = &[
             manifest: Manifest::Npm,
             breaking_below: None,
         }],
-        configs: &["next-intl.config"],
+        configs: &[Config {
+            stem: "next-intl.config",
+            extensions: JS_CONFIG,
+        }],
         calls: &["useTranslations(", "getTranslations(", "next-intl"],
         layouts: &[Layout {
             shape: Shape::Shared { extension: "json" },
@@ -409,7 +445,12 @@ const ALL: &[Library] = &[
                 breaking_below: None,
             },
         ],
-        configs: &["l10n"],
+        // `l10n.yaml` and nothing else. `l10n.json` is a translation
+        // bundle and `l10n.ts` is a module; neither is Flutter's config.
+        configs: &[Config {
+            stem: "l10n",
+            extensions: &["yaml", "yml"],
+        }],
         calls: &["AppLocalizations.of("],
         layouts: &[Layout {
             shape: Shape::Shared { extension: "arb" },

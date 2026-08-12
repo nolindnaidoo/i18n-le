@@ -436,11 +436,15 @@ fn config_signals(anchor: &Path) -> Vec<Signal> {
             let name = entry.file_name().to_string_lossy().into_owned();
             // A config is a *file with an extension*: `l10n.yaml` is
             // Flutter's, and a directory called `l10n` is not it.
-            let Some((stem, _)) = name.rsplit_once('.') else {
+            let Some((stem, extension)) = name.rsplit_once('.') else {
                 continue;
             };
             for library in library::all() {
-                if library.configs.contains(&stem) {
+                if library
+                    .configs
+                    .iter()
+                    .any(|config| config.matches(stem, extension))
+                {
                     signals.push(Signal {
                         class: Class::Config,
                         library: library.id,
@@ -1116,6 +1120,37 @@ mod tests {
         let error = refusal(&tree, "strings");
         assert!(!error.contains("next-intl"), "{error}");
         assert!(!error.contains("i18next"), "{error}");
+    }
+
+    /// **A config is a file the library actually writes, not a file
+    /// whose name starts the same way.** Flutter's config is
+    /// `l10n.yaml`; `l10n.json` is somebody's translation bundle and
+    /// `l10n.ts` is somebody's module, and either voting for a library
+    /// nothing else here points at is a class of evidence diluting the
+    /// corroboration rule it feeds.
+    #[test]
+    fn a_config_votes_only_in_an_extension_that_library_writes() {
+        let tree = TempTree::new("identify-config-extension");
+        tree.write("l10n.json", "{}");
+        tree.write("l10n.ts", "export default {}\n");
+        tree.write("strings/en.json", r#"{"a":"one"}"#);
+        tree.write("strings/es.json", r#"{"a":"uno"}"#);
+        let error = refusal(&tree, "strings");
+        assert!(!error.contains("config: "), "{error}");
+        assert!(!error.contains("flutter-arb"), "{error}");
+    }
+
+    /// And the extension it does write still counts, or the tightening
+    /// above would have taken the class away rather than aimed it.
+    #[test]
+    fn the_extension_a_library_does_write_is_still_a_config() {
+        let tree = TempTree::new("identify-config-yaml");
+        tree.write("l10n.yaml", "arb-dir: lib/l10n\n");
+        tree.write("strings/en.json", r#"{"a":"one"}"#);
+        tree.write("strings/es.json", r#"{"a":"uno"}"#);
+        let error = refusal(&tree, "strings");
+        assert!(error.contains("config: ../l10n.yaml"), "{error}");
+        assert!(error.contains("flutter-arb"), "{error}");
     }
 
     #[test]

@@ -7,6 +7,18 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- **A config file counts only in an extension that library writes.**
+  Matching the stem alone meant `l10n.json` — a translation bundle — and
+  `l10n.ts` — a module — each cast a config vote for flutter-arb, and
+  `i18next-parser.config.md` would have voted for i18next. The library
+  row now carries the extensions with the stem:
+  `.js/.cjs/.mjs/.ts/.mts/.cts/.json` for the JavaScript configs,
+  `.yaml/.yml` for Flutter's. A project whose only second class of
+  evidence was a misspelled config now gets a refusal listing what was
+  found rather than an identification resting on it.
+
 ### Fixed
 
 - **`system.version` reads whichever manifest identified the library.**

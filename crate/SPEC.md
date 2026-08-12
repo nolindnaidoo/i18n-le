@@ -39,7 +39,7 @@ looking at. Now it asks.
 | Class | What it reads |
 |---|---|
 | **Manifest** | `package.json` dependencies (`dependencies`, `devDependencies`, `peerDependencies`) and its `l10n` field; `pubspec.yaml` |
-| **Config** | `i18next-parser.config.*`, `next-i18next.config.*`, `next-intl.config.*`, `l10n.yaml` |
+| **Config** | `i18next-parser.config`, `next-i18next.config`, `next-intl.config` in `.js/.cjs/.mjs/.ts/.mts/.cts/.json`; `l10n.yaml` or `l10n.yml` |
 | **Layout** | a directory shape only one library writes |
 | **Content** | the catalogue's own syntax — the strongest class, because it is what actually breaks at runtime |
 | **Call site** | `useTranslation()`, `useTranslations()`, `vscode.l10n.t(`, `AppLocalizations.of(` in source files |
@@ -47,6 +47,11 @@ looking at. Now it asks.
 Manifests and configs are looked for by walking **up** from the
 catalogues, eight levels at most: in a monorepo the declaring manifest
 can sit well above them.
+
+A config counts only in an extension that library is actually written
+in. `l10n.yaml` is Flutter's; `l10n.json` is somebody's translation
+bundle and `l10n.ts` is somebody's module, and a class of evidence that
+fires on either would dilute the corroboration rule it feeds.
 
 ### Signature strength
 
