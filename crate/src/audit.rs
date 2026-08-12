@@ -161,16 +161,51 @@ pub(crate) struct Options {
     pub(crate) keys_are_source: bool,
 }
 
-/// Audit every catalogue in `files` against `files[source]`.
-pub(crate) fn audit(files: &[Catalogue], source: usize, options: Options) -> Vec<Finding> {
+/// A catalogue set with its reference already resolved.
+///
+/// **The invariant is the type's, not the caller's.** `audit` used to
+/// take a bare `usize` and index with it, so "the resolver only ever
+/// hands back a position that is there" was a promise kept by whoever
+/// called it — and a source outside the set was `index out of bounds`
+/// rather than an answer. The only constructor checks once; nothing
+/// after it indexes anything.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Set<'a> {
+    files: &'a [Catalogue],
+    /// Where the reference sits, kept to tell it apart while iterating
+    /// and to line up with anything built alongside `files`. Never used
+    /// to look a catalogue up.
+    index: usize,
+    source: &'a Catalogue,
+}
+
+impl<'a> Set<'a> {
+    pub(crate) fn new(files: &'a [Catalogue], index: usize) -> Option<Self> {
+        Some(Self {
+            files,
+            index,
+            source: files.get(index)?,
+        })
+    }
+
+    /// Where the reference sits, for a caller lining something up
+    /// alongside `files` — the report's summaries. Whoever takes it must
+    /// `get` with it, never `[]`.
+    pub(crate) fn index(self) -> usize {
+        self.index
+    }
+}
+
+/// Audit every catalogue in the set against its source.
+pub(crate) fn audit(set: Set<'_>, options: Options) -> Vec<Finding> {
     let library = options.library.library();
-    let reference = &files[source];
+    let reference = set.source;
 
     let mut findings = Vec::new();
     findings.extend(convention_findings(reference, options));
 
-    for (index, file) in files.iter().enumerate() {
-        if index == source {
+    for (index, file) in set.files.iter().enumerate() {
+        if index == set.index {
             findings.extend(duplicate_findings(file));
             findings.extend(empty_findings(file));
             continue;
@@ -522,8 +557,7 @@ mod tests {
             catalogue("es.json", target).without_metadata(library.library()),
         ];
         audit(
-            &files,
-            0,
+            Set::new(&files, 0).expect("a source in the set"),
             Options {
                 library,
                 keys_are_source: false,
@@ -533,6 +567,22 @@ mod tests {
 
     fn kinds(findings: &[Finding]) -> Vec<Kind> {
         findings.iter().map(|finding| finding.kind).collect()
+    }
+
+    /// **The audit cannot be asked to compare against a catalogue that
+    /// is not there.** It took a bare index and used it, so a resolver
+    /// bug was `index out of bounds` — a panic, in a tool whose product
+    /// is an exit code a shell branches on. `Set` is the only door in
+    /// and it is checked once, on the way through.
+    #[test]
+    fn a_source_outside_the_set_is_refused_at_the_door() {
+        let files = [catalogue("en.json", r#"{"a":"one"}"#)];
+        assert!(Set::new(&files, 1).is_none(), "one past the end");
+        assert!(Set::new(&files, 9).is_none());
+        assert!(Set::new(&[], 0).is_none(), "an empty set has no source");
+        let set = Set::new(&files, 0).expect("a source in the set");
+        assert_eq!(set.index(), 0);
+        assert_eq!(set.source.path, "en.json");
     }
 
     #[test]
@@ -774,8 +824,7 @@ mod tests {
             catalogue("bundle.l10n.de.json", r#"{"Save {0}":"Save {0}"}"#),
         ];
         let findings = audit(
-            &files,
-            0,
+            Set::new(&files, 0).expect("a source in the set"),
             Options {
                 library,
                 keys_are_source: true,
@@ -817,8 +866,7 @@ mod tests {
         let files = [catalogue("en.json", r#"{"a":"one"}"#)];
         assert_eq!(
             audit(
-                &files,
-                0,
+                Set::new(&files, 0).expect("a source in the set"),
                 Options {
                     library: Id::I18next,
                     keys_are_source: false

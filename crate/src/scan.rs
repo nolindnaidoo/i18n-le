@@ -244,9 +244,15 @@ pub(crate) fn report_for(
     }
 
     let source = resolve_source(&files, options.source.as_deref())?;
+    let Some(set) = audit::Set::new(&files, source) else {
+        // `resolve_source` answers with a position in `files`, so there
+        // is no path from it to one that is not there. Said as a refusal
+        // rather than left as an index, because a bug should not be a
+        // panic in a tool whose product is an exit code.
+        return Err("the resolved source is not one of the catalogues".to_string());
+    };
     let findings = audit::audit(
-        &files,
-        source,
+        set,
         audit::Options {
             library: system.library,
             keys_are_source,
@@ -261,7 +267,7 @@ pub(crate) fn report_for(
         } else {
             Status::Findings
         },
-        source: Some(summaries[source].clone()),
+        source: summaries.get(set.index()).cloned(),
         summary: Summary {
             files: summaries.len(),
             findings: findings.len(),
