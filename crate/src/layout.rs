@@ -365,7 +365,14 @@ fn name_of(path: &Path) -> String {
         .into_owned()
 }
 
+/// One catalogue's text, or why it could not be had.
+///
+/// **The reason never names the path.** It becomes a `skipped`
+/// diagnostic, whose `file` already carries the name the report uses,
+/// and SPEC.md promises every reported path is relative to the
+/// catalogues: an absolute one here made two machines auditing the same
+/// repository produce different reports for the same defect.
 pub(crate) fn read_text(path: &Path) -> Result<String, String> {
-    let bytes = std::fs::read(path).map_err(|error| format!("{}: {error}", path.display()))?;
-    String::from_utf8(bytes).map_err(|_| format!("{}: not UTF-8 text", path.display()))
+    let bytes = std::fs::read(path).map_err(|error| error.to_string())?;
+    String::from_utf8(bytes).map_err(|_| "not UTF-8 text".to_string())
 }

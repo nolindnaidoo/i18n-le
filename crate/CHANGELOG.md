@@ -5,6 +5,20 @@ The Rust CLI and MCP server.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **A `skipped` diagnostic no longer carries an absolute path.** The
+  message was the read error verbatim, and that error names the file in
+  full — so two machines auditing the same repository produced different
+  reports for the same unreadable catalogue, against SPEC.md's promise
+  that every reported path is relative to the catalogues. The
+  diagnostic's `file` field already carries the name the report uses, so
+  the message is now the reason alone: `not UTF-8 text`, `Permission
+  denied (os error 13)`. The stderr line loses a duplicated path with
+  it.
+
 ## [0.3.0] - 2026-08-12
 
 A rewrite, not a refactor. Identification became the front door, and the

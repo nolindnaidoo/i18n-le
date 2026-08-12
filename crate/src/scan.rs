@@ -628,6 +628,45 @@ mod tests {
         assert_eq!(report.findings[0].kind, Kind::MissingKey);
     }
 
+    /// **Every reported path is relative to the catalogues** — SPEC.md
+    /// says so, and the whole reason is that a report is a thing to diff
+    /// between machines. A `skipped` diagnostic carried the read error
+    /// verbatim, and that error names the file in full: two machines
+    /// auditing the same repository produced different reports for the
+    /// same defect.
+    #[test]
+    fn a_diagnostic_names_the_catalogue_and_not_the_machine() {
+        let tree = TempTree::new("scan-unreadable");
+        tree.write("package.json", r#"{"dependencies":{"i18next":"^26.0.0"}}"#);
+        tree.write("src/a.ts", "useTranslation()\n");
+        tree.write("locales/en.json", r#"{"a":"Hello {{name}}"}"#);
+        // Not UTF-8 by any reading, so the read fails after the file has
+        // already been found and named.
+        tree.write_bytes("locales/es.json", b"{\"a\":\"Hola \xff\xfe\"}");
+
+        let report = scan(
+            &[tree.path().join("locales")],
+            Requested::Detect,
+            &ScanOptions::default(),
+        )
+        .expect("scans");
+
+        let diagnostic = &report.diagnostics[0];
+        assert_eq!(diagnostic.code, "skipped");
+        assert_eq!(diagnostic.file, "es.json", "the name is the report's");
+        let root = tree.path().to_string_lossy().into_owned();
+        assert!(
+            !diagnostic.message.contains(&root),
+            "the machine is in the report: {}",
+            diagnostic.message
+        );
+        assert!(
+            !diagnostic.message.contains(std::path::MAIN_SEPARATOR),
+            "a path is in the message: {}",
+            diagnostic.message
+        );
+    }
+
     #[test]
     fn a_missing_directory_is_refused() {
         let tree = TempTree::new("scan-missing");

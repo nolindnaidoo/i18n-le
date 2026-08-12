@@ -305,10 +305,11 @@ key is not a finding. Where the layout says the key *is* the English
 string, English reaches the report — that is the shape the VS Code
 bundle has, stated rather than hidden. A *translation* never does.
 
-**Paths are reported relative to the catalogues**, never absolute — with
-one exception, recorded in AGENTS.md rather than left to be discovered:
-a `skipped` diagnostic's `message` is the underlying read error and
-names the file it could not open in full.
+**Paths are reported relative to the catalogues**, never absolute. That
+includes a diagnostic's `message`: the `file` field already carries the
+name, so a read failure is reported as the reason alone — `not UTF-8
+text`, `Permission denied (os error 13)` — and never as a path from the
+machine that ran the audit.
 
 ## Formats
 

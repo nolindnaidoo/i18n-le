@@ -288,19 +288,6 @@ Named here so none of it reads as an oversight:
   would block the read for as long as nothing writes to it. The
   siblings' `tests/hazards.rs` is where that class of input belongs and
   this has no equivalent.
-- **One absolute path can still reach the report.** SPEC.md says every
-  reported path is relative to the catalogues, and every one is —
-  except the `message` of a `skipped` diagnostic, which is
-  `identify::read_text`'s error and names the file it could not open in
-  full. It takes an unreadable catalogue to see, and it breaks the
-  property that two machines produce the same report for the same
-  repository. Fixing it changes what the tool prints, so it is written
-  down rather than done quietly.
-- **`system.version` is npm-only.** `declared_version` reads
-  `package.json` and nothing else, so a Flutter project that declares
-  `intl: ^0.19.0` in its `pubspec.yaml` is identified from it and then
-  reported with `"version": null`. The manifest class votes from both;
-  only one of them can be quoted back.
 - **A new `Manifest` kind is not just a row.** Adding a library is, as
   long as it declares itself somewhere already read. A library declared
   in a `Cargo.toml` or a `composer.json` needs a reader in `identify.rs`

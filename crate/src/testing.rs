@@ -38,6 +38,12 @@ impl TempTree {
     }
 
     pub(crate) fn write(&self, relative: &str, contents: &str) -> PathBuf {
+        self.write_bytes(relative, contents.as_bytes())
+    }
+
+    /// Bytes rather than text, for the hazards that only exist on the way
+    /// in from a filesystem — a catalogue that is not UTF-8 at all.
+    pub(crate) fn write_bytes(&self, relative: &str, contents: &[u8]) -> PathBuf {
         let target = self.root.join(relative);
         if let Some(parent) = target.parent() {
             std::fs::create_dir_all(parent).expect("a parent directory");
