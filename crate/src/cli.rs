@@ -40,7 +40,8 @@ byte-identical to the English.
 
 Options:
   --system <name>          the library to audit as, skipping
-                           identification
+                           identification: i18next, next-intl,
+                           vscode-l10n, flutter-arb
   --source <path|locale>   the catalogue every other is measured against;
                            auto-detected only when exactly one English
                            candidate exists

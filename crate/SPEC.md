@@ -207,9 +207,18 @@ else, and a tool that broke the build for that gets switched off within
 a week. `--fail-on untranslated` and `--fail-on any` promote it.
 
 **`convention-mismatch` covers exactly the constructs that cannot be
-anything else** in the identified library: an ICU comma-form where ICU
-is not native, a Fluent `{ $x }`, a printf conversion, a `${x}`, and
-`$t(…)` outside i18next. A bare `{name}` in an i18next catalogue is
+anything else** in the identified library, and the finding names which
+one it found in a `construct` field:
+
+| `construct` | What it is |
+|---|---|
+| `icu-argument` | `{count, plural, …}` where ICU is not native. |
+| `fluent` | `{ $variable }`, which no library here writes. |
+| `printf` | `%s`, `%d`, `%1$s`. |
+| `template-literal` | `${…}`, a JavaScript template escaping into a catalogue. |
+| `nesting` | `$t(other.key)` outside i18next. |
+
+A bare `{name}` in an i18next catalogue is
 **not** one — it is literal text, which is what i18next renders it as.
 Drift there is still caught, by `placeholder-style-mismatch`, and only
 where the source had a real placeholder at the same key. It is emitted
@@ -382,6 +391,9 @@ cannot drift.
 }
 ```
 
+- **`status` is one of three.** `clean` — nothing to report; `findings`
+  — the list below it; `no-files` — the directory held no catalogues,
+  which is not a failure because there is nothing to be wrong with.
 - **`schema` is 3.** v2 had a guessed `profile` and a `grammar` field
   and a `refusals` array; a v2 reader would not recognise `system`, and
   with a library in hand there is nothing left to refuse per file.
@@ -444,6 +456,17 @@ on stderr and carried in the report with a diagnostic, and the rest are
 still audited. `--strict` turns that into exit 2. What is never allowed
 is the third option: a file that silently vanishes from the report,
 which reads to whoever ran it as a file that was clean.
+
+There are two diagnostic codes, and the difference between them is
+whether the bytes ever became text:
+
+| `code` | What happened |
+|---|---|
+| `skipped` | The file could not be opened, or was not UTF-8. |
+| `unparsable` | The text was read and was not a JSON object. |
+
+A diagnostic's `message` is the reason alone — its `file` already
+carries the name.
 
 A manifest that will not parse is **not** a refusal: it is somebody
 else's broken file, and the catalogues beside it may be fine.
