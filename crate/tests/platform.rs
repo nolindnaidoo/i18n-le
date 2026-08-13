@@ -202,16 +202,31 @@ fn a_case_folding_filesystem_reports_each_catalogue_once() {
     tree.write("locales/PT-br.json", r#"{"a":"Ola {{name}}"}"#);
 
     let directory = tree.path().join("locales");
-    let folding = std::fs::write(directory.join("EN.json"), r#"{"a":"Hi {{name}}"}"#).is_ok()
-        && std::fs::read_dir(&directory)
-            .expect("the directory")
-            .count()
-            == 2;
-    if folding {
-        skipped(
-            "case-folding",
-            "this filesystem folded EN.json onto en.json, which is the case under test",
+    let before = std::fs::read_dir(&directory)
+        .expect("the directory")
+        .count();
+    let wrote = std::fs::write(directory.join("EN.json"), r#"{"a":"Hi {{name}}"}"#).is_ok();
+    let after = std::fs::read_dir(&directory)
+        .expect("the directory")
+        .count();
+    // Folding is "the directory did not grow", not a fixed count. Counting
+    // entries against a literal counted the two catalogues already written,
+    // so a case-sensitive filesystem read as folding and the test carried on
+    // to assert a shape only case-insensitivity produces — green on macOS,
+    // red on Linux, and the tool was right both times.
+    let folding = wrote && after == before;
+    if !folding {
+        // Two files really are on disk and either could be the source locale.
+        // Refusing is the documented answer, so that is what is asserted here
+        // rather than the one-catalogue shape the folding case produces.
+        let run = run(&[&directory.to_string_lossy()]);
+        assert_eq!(run.code, 2, "{}", run.stderr);
+        assert!(
+            run.stderr.contains("could be the English one"),
+            "a case-sensitive filesystem must refuse two candidate sources: {}",
+            run.stderr
         );
+        return;
     }
 
     let run = run(&[&directory.to_string_lossy()]);
