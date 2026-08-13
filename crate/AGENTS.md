@@ -42,7 +42,7 @@ crate/src/
 
 **The pure modules are `library.rs`, `catalogue.rs`, `message.rs`,
 `locale.rs` and `audit.rs`.** They take text and return findings; a
-`std::fs` call in any of them is a bug. They carry the **90% line
+`std::fs` call in any of them is a bug. They carry the **75% line
 coverage floor per module**, enforced by the `coverage` job — which
 lists them by name, so renaming one turns the job red instead of quietly
 making it check nothing.

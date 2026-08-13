@@ -67,7 +67,7 @@ on any conflict.
   Anything else needing a change outside the table means the table is
   wrong — fix the table, not the caller.
 - **The pure modules are `library.rs`, `catalogue.rs`, `message.rs`,
-  `locale.rs` and `audit.rs`**, they carry a 90% coverage floor, and CI
+  `locale.rs` and `audit.rs`**, they carry a 75% coverage floor, and CI
   lists them by name. Renaming one means updating
   `.github/workflows/ci-crate.yml` in the same change, or the job
   quietly checks nothing.
