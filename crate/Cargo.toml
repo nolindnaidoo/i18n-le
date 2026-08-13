@@ -1,11 +1,11 @@
 [package]
 name = "i18n-le"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2024"
 rust-version = "1.88"
 license = "MIT"
 readme = "README.md"
-description = "Audit translation catalogues for missing keys, placeholder drift and structural mismatches"
+description = "Identify the i18n library a project uses, then audit its catalogs by that library's rules"
 authors = ["Nolin D Naidoo"]
 homepage = "https://letools.dev/tools/i18n-le"
 repository = "https://github.com/nolindnaidoo/i18n-le"
