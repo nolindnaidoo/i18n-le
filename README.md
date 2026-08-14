@@ -19,7 +19,7 @@
 ---
 
 <p align="center">
-  <img src="assets/demo.gif" alt="i18n-LE demo — the real binary, recorded by assets/demo.tape" style="max-width: 100%; height: auto;" />
+  <img src="https://raw.githubusercontent.com/nolindnaidoo/i18n-le/main/assets/demo.gif" alt="i18n-LE demo — the real binary, recorded by assets/demo.tape" style="max-width: 100%; height: auto;" />
 </p>
 
 Spanish shipped last week and the metrics screen has said `{{periodo}}`
