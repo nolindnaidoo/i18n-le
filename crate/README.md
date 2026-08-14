@@ -232,7 +232,7 @@ too, which only that library knows to do.
 
 Fluent, gettext, `strings.xml`, Apple `.strings`/`.xcstrings`, YAML and
 Java `.properties` are **documented deferrals**, not silent gaps — see
-[SPEC.md](SPEC.md).
+[SPEC.md](https://github.com/nolindnaidoo/i18n-le/blob/main/crate/SPEC.md).
 
 ## Options
 
@@ -348,6 +348,7 @@ Each stands on its own: no shared crate, no published core. Where two of them
 agree, it is because the same answer was right twice.
 
 **Contact** — [nolindnaidoo.com](https://nolindnaidoo.com) · [GitHub](https://github.com/nolindnaidoo) · [LinkedIn](https://www.linkedin.com/in/nolindnaidoo/)
+
 ## Also by nolindnaidoo
 
 **Rust** — pixelcoords and pixelactions are one loop: pixelcoords answers

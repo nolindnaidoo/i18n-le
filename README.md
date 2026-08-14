@@ -67,7 +67,7 @@ is no VS Code extension beside it and no npm package.
 **[`crate/README.md`](crate/README.md) is the user-facing document**: what
 it checks, how it works out which i18n library you use before it reads
 anything, plurals, formats, options, output, running it as an MCP server,
-and installation. It is not duplicated here — two copies of a 349-line
+and installation. It is not duplicated here — two copies of one long
 document is the drift this family spends its gates preventing.
 
 | | |
@@ -77,18 +77,7 @@ document is the drift this family spends its gates preventing.
 | How the code is written | [`crate/AGENTS.md`](crate/AGENTS.md), and [AGENTS.md](AGENTS.md) for the repository around it |
 | What changed | [CHANGELOG.md](CHANGELOG.md) · [`crate/CHANGELOG.md`](crate/CHANGELOG.md) |
 
-## Status
-
-**Published on crates.io.** Identification, both surfaces, the corpus and
-every test layer are built and green, and CI runs all of them. What is
-deliberately still absent is listed under "Left for the owner" in
-[`crate/AGENTS.md`](crate/AGENTS.md), so none of it reads as an oversight.
-
-`crate/Cargo.toml` runs a patch ahead of the registry between releases —
-that is a release waiting to be dispatched, not a mismatch. The badge
-above reads the live version rather than restating one here.
-
-## Install it
+## Install
 
 ```bash
 cargo install i18n-le
@@ -108,6 +97,16 @@ cargo fmt --all --check
 cargo clippy --all-targets -- -D warnings
 cargo test --locked
 ```
+
+## Documentation
+
+| What | Where |
+|---|---|
+| What the tool is allowed to say — the checks, the refusals, the exit codes, the privacy boundary | [`crate/SPEC.md`](crate/SPEC.md) |
+| How the code is written and held together — architecture, invariants, the gates | [`crate/AGENTS.md`](crate/AGENTS.md) |
+| What the user sees — the full front page, install and all | [`crate/README.md`](crate/README.md) |
+| What changed | [CHANGELOG.md](CHANGELOG.md) · [`crate/CHANGELOG.md`](crate/CHANGELOG.md) |
+| The tool's page, and the other fifteen | [letools.dev/tools/i18n-le](https://letools.dev/tools/i18n-le) |
 
 ## The LE family
 
