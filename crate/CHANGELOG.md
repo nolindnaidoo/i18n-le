@@ -30,6 +30,12 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **One sentence describes this crate everywhere it is described.** The
+  `description` in `Cargo.toml`, the line under the title in
+  `README.md`, and the entry on letools.dev had drifted into three
+  paraphrases, so the crate a reader met on crates.io was not obviously
+  the one they met on the site. Nothing about the tool moved.
+
 - **A file is read only when it is a regular file.** The call-site scan
   refused a source file over 512 KB and never asked what kind of thing
   it was measuring, so a FIFO named `app.ts` — or a `package.json` or a
@@ -162,7 +168,7 @@ guessing core it used to sit on top of is gone.
   almost always the catalogue directory itself, so the version was
   always absent.
 
-[0.3.0]: https://github.com/nolindnaidoo/i18n-le/releases/tag/crate-v0.3.0
+[0.3.0]: https://crates.io/crates/i18n-le/0.3.0
 
 ## [0.2.0] - 2026-08-12
 
@@ -244,7 +250,7 @@ looking at.
   paths were left out of the "what does this file define" set, so the
   string looked like a key the source had never heard of.
 
-[0.2.0]: https://github.com/nolindnaidoo/i18n-le/releases/tag/crate-v0.2.0
+[0.2.0]: https://crates.io/crates/i18n-le/0.2.0
 
 ## [0.1.0] - 2026-08-12
 
@@ -320,4 +326,4 @@ differ from every other for a reason that is not the catalogues.
   Only `%s`, `%d` and `%1$s` are read now. Found by running the binary
   against a real catalogue set, with a green test suite.
 
-[0.1.0]: https://github.com/nolindnaidoo/i18n-le/releases/tag/crate-v0.1.0
+[0.1.0]: https://crates.io/crates/i18n-le/0.1.0
