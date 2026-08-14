@@ -6,12 +6,27 @@
 </p>
 
 <p align="center">
+  <a href="https://crates.io/crates/i18n-le">
+    <img src="https://img.shields.io/crates/v/i18n-le.svg" alt="i18n-le on crates.io" />
+  </a>
+  <a href="https://crates.io/crates/i18n-le">
+    <img src="https://img.shields.io/crates/d/i18n-le.svg" alt="crates.io downloads" />
+  </a>
+  <a href="https://github.com/nolindnaidoo/i18n-le/actions/workflows/ci-crate.yml">
+    <img src="https://github.com/nolindnaidoo/i18n-le/actions/workflows/ci-crate.yml/badge.svg" alt="Build Status" />
+  </a>
   <img src="https://img.shields.io/badge/rustc-1.88+-93450a.svg" alt="MSRV: Rust 1.88+" />
-  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" />
-  <a href="https://letools.dev">
+  <a href="https://github.com/nolindnaidoo/i18n-le/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" />
+  </a>
+  <a href="https://letools.dev/tools/i18n-le">
     <img src="https://img.shields.io/badge/web-letools.dev-00A0FF.svg" alt="letools.dev" />
   </a>
 </p>
+
+> **Useful?** A star is how other developers find it —
+> [★ GitHub](https://github.com/nolindnaidoo/i18n-le) ·
+> [letools.dev/tools/i18n-le](https://letools.dev/tools/i18n-le)
 
 Spanish shipped last week and the metrics screen has said `{{periodo}}`
 to every user since. The catalogue had every key. It parsed. The

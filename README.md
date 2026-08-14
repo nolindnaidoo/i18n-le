@@ -1,21 +1,21 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/nolindnaidoo/i18n-le/main/assets/icon.png" alt="i18n-LE logo" width="96" height="96"/>
 </p>
-<h1 align="center">i18n-le</h1>
-
+<h1 align="center">i18n-LE</h1>
 <p align="center">
   <b>Audit translation catalogues for missing keys, placeholder drift and structural mismatches</b><br/>
   <i>keys and tokens — never a translated string</i>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/rustc-1.88+-93450a.svg" alt="MSRV: Rust 1.88+" />
-  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" />
   <a href="https://crates.io/crates/i18n-le">
-    <img src="https://img.shields.io/crates/v/i18n-le.svg" alt="crates.io" />
+    <img src="https://img.shields.io/crates/v/i18n-le?style=for-the-badge&label=Rust%20CLI&color=blue&logo=rust" alt="i18n-le on crates.io" />
   </a>
-  <a href="https://letools.dev">
-    <img src="https://img.shields.io/badge/web-letools.dev-00A0FF.svg" alt="letools.dev" />
+  <a href="https://letools.dev/tools/i18n-le">
+    <img src="https://img.shields.io/badge/LE%20Tools-letools.dev-blue?style=for-the-badge" alt="LE Tools" />
+  </a>
+  <a href="https://github.com/nolindnaidoo/i18n-le/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="MIT licensed" />
   </a>
 </p>
 
@@ -24,6 +24,10 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/nolindnaidoo/i18n-le/main/assets/demo.gif" alt="i18n-LE demo — the real binary, recorded by assets/demo.tape" style="max-width: 100%; height: auto;" />
 </p>
+
+> **Useful?** A star is how other developers find it —
+> [★ GitHub](https://github.com/nolindnaidoo/i18n-le) ·
+> [letools.dev/tools/i18n-le](https://letools.dev/tools/i18n-le)
 
 Spanish shipped last week and the metrics screen has said `{{periodo}}`
 to every user since. The catalogue had every key. It parsed. The
