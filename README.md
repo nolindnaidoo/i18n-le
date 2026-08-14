@@ -8,7 +8,9 @@
 <p align="center">
   <img src="https://img.shields.io/badge/rustc-1.88+-93450a.svg" alt="MSRV: Rust 1.88+" />
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" />
-  <img src="https://img.shields.io/badge/status-v0.3.1%20unpublished-lightgrey.svg" alt="Status: v0.3.1, unpublished" />
+  <a href="https://crates.io/crates/i18n-le">
+    <img src="https://img.shields.io/crates/v/i18n-le.svg" alt="crates.io" />
+  </a>
   <a href="https://letools.dev">
     <img src="https://img.shields.io/badge/web-letools.dev-00A0FF.svg" alt="letools.dev" />
   </a>
@@ -57,12 +59,22 @@ document is the drift this family spends its gates preventing.
 
 ## Status
 
-**v0.3.1, and not on crates.io yet.** Identification, both surfaces, the
-corpus and every test layer are built and green, and CI runs all of them.
-What is deliberately still absent is listed under "Left for the owner" in
+**Published on crates.io.** Identification, both surfaces, the corpus and
+every test layer are built and green, and CI runs all of them. What is
+deliberately still absent is listed under "Left for the owner" in
 [`crate/AGENTS.md`](crate/AGENTS.md), so none of it reads as an oversight.
 
-## Build it
+`crate/Cargo.toml` runs a patch ahead of the registry between releases —
+that is a release waiting to be dispatched, not a mismatch. The badge
+above reads the live version rather than restating one here.
+
+## Install it
+
+```bash
+cargo install i18n-le
+```
+
+Or build from this repository:
 
 ```bash
 cd crate

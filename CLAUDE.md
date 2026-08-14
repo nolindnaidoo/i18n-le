@@ -61,5 +61,6 @@ All three, exactly as CI runs them.
   **availability**: an install line for a publish you are about to make is
   **staged, not forbidden**. Write it, and let the release commit be what makes
   it true.
-- **Nothing here is on crates.io yet.** `crate/Cargo.toml` and
-  `crate/CHANGELOG.md` are the version's source of truth when it lands.
+- **This crate is on crates.io.** `crate/Cargo.toml` ahead of the registry is a
+  release waiting to be dispatched, not a mismatch — check the registry before
+  writing down what is live.

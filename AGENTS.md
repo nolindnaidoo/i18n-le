@@ -114,8 +114,10 @@ The crate publishes from `crate/` by **dispatching
 `release-crate.yml`**, never by pushing a tag: a crates.io version can
 never be reused, so the irreversible step is one a person chooses on
 purpose, and the workflow refuses a version the registry already
-carries. It is **not on crates.io yet**; `crate/CHANGELOG.md` and
-`crate/Cargo.toml` are the version's source of truth when it is.
+carries. **It is on crates.io**; `crate/Cargo.toml` and
+`crate/CHANGELOG.md` are the source of truth for what ships next, and
+`crate/Cargo.toml` running ahead of the registry is a release waiting to
+be dispatched rather than a mismatch.
 
 ## Known limitations (documented, not bugs)
 
