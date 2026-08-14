@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nolindnaidoo/i18n-le/main/assets/icon.png" alt="i18n-LE logo" width="96" height="96"/>
+</p>
 <h1 align="center">i18n-le</h1>
 
 <p align="center">
