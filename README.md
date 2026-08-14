@@ -98,6 +98,20 @@ cargo clippy --all-targets -- -D warnings
 cargo test --locked
 ```
 
+## Options
+
+Taken from `i18n-le --help`, which is the authority. The full reference,
+with what each one is for, is in
+[`crate/README.md`](crate/README.md).
+
+| Option | What it does |
+|---|---|
+| `--system <name>` | Audit as a named library, skipping identification: `i18next`, `next-intl`, `vscode-l10n`, `flutter-arb` |
+| `--source <path\|locale>` | The catalogue every other is measured against; auto-detected only when exactly one English candidate exists |
+| `--keys-are-source` | The key is the English string, as in a VS Code `bundle.l10n.json` |
+| `--fail-on <what>` | `untranslated`, or `any` — what else fails the run besides the findings that already do |
+| `--strict` | Also fail when a catalogue could not be read or parsed |
+
 ## Documentation
 
 | What | Where |
