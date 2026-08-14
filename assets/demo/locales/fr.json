@@ -1,0 +1,13 @@
+{
+  "app": {
+    "title": "Ledgerline",
+    "greeting": "Bon retour, {{name}}",
+    "greeting": "Content de vous revoir, {{name}}"
+  },
+  "nav": {
+    "home": "Accueil",
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
+  },
+  "footer": "Mis à jour {{time}}"
+}

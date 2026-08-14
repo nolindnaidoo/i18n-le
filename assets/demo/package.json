@@ -1,0 +1,4 @@
+{
+  "name": "ledgerline",
+  "dependencies": { "i18next": "^26.2.0", "react-i18next": "^15.0.0" }
+}

@@ -1,0 +1,12 @@
+{
+  "app": {
+    "title": "Ledgerline",
+    "greeting": "Bienvenido de nuevo",
+    "rank": "Puesto {{rank}} de {{cantidad}}"
+  },
+  "nav": {
+    "home": "Inicio",
+    "settings": ""
+  },
+  "footer": "Actualizado {{hora}}"
+}

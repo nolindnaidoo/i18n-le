@@ -18,6 +18,10 @@
 
 ---
 
+<p align="center">
+  <img src="assets/demo.gif" alt="i18n-LE demo — the real binary, recorded by assets/demo.tape" style="max-width: 100%; height: auto;" />
+</p>
+
 Spanish shipped last week and the metrics screen has said `{{periodo}}`
 to every user since. The catalogue had every key. It parsed. The
 placeholder came back from machine translation with its name translated
