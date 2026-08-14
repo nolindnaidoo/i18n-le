@@ -108,7 +108,7 @@ cargo test --locked
 | What changed | [CHANGELOG.md](CHANGELOG.md) · [`crate/CHANGELOG.md`](crate/CHANGELOG.md) |
 | The tool's page, and the other fifteen | [letools.dev/tools/i18n-le](https://letools.dev/tools/i18n-le) |
 
-## The LE family
+## More from the LE family
 
 Sixteen single-purpose tools, one line: **get your data right before the
 model sees it.** [letools.dev](https://letools.dev)

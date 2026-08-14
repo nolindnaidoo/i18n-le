@@ -314,6 +314,15 @@ refusal. That is the honest split, not a missing feature.
 
 No runtime, no network, nothing written.
 
+## Documentation
+
+| What | Where |
+|---|---|
+| What this tool is allowed to say — scope, output contract, refusals, non-goals | [SPEC.md](https://github.com/nolindnaidoo/i18n-le/blob/main/crate/SPEC.md) |
+| How the code is written and held together — architecture, invariants, the gates | [AGENTS.md](https://github.com/nolindnaidoo/i18n-le/blob/main/crate/AGENTS.md) |
+| What changed | [CHANGELOG.md](https://github.com/nolindnaidoo/i18n-le/blob/main/crate/CHANGELOG.md) |
+| The tool's page, and the other fifteen | [letools.dev/tools/i18n-le](https://letools.dev/tools/i18n-le) |
+
 ## More from the LE family
 
 Sixteen single-purpose tools for the work in front of every model. Each ships
