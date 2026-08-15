@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nolindnaidoo/i18n-le/main/assets/icon.png" alt="i18n-le logo" width="96" height="96"/>
+</p>
+
 <h1 align="center">i18n-le</h1>
 
 <p align="center">
@@ -22,6 +26,10 @@
   <a href="https://letools.dev/tools/i18n-le">
     <img src="https://img.shields.io/badge/web-letools.dev-00A0FF.svg" alt="letools.dev" />
   </a>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nolindnaidoo/i18n-le/main/assets/demo.gif" alt="i18n-le demo — the real binary, recorded by assets/demo.tape" width="100%"/>
 </p>
 
 > **Useful?** A star is how other developers find it —
