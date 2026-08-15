@@ -101,8 +101,8 @@ a spec must match the code.
 
 ## Git and commits
 
-Conventional, imperative, subject under 100 characters, scoped to the
-files the change touches. Every commit uses the GitHub noreply address
+Conventional, imperative, scoped to the files the change touches. Every
+commit uses the GitHub noreply address
 `13629544+nolindnaidoo@users.noreply.github.com` — a real address in
 commit metadata is public forever and gets scraped. No AI attribution of
 any kind: not a trailer, not a footer, not a comment. Commits are the
