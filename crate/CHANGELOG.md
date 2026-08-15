@@ -5,6 +5,18 @@ The Rust CLI and MCP server.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2026-08-15
+
+### Fixed
+
+- **Two spellings of the same directory are one directory.** `i18n-le
+  en.json ./de.json` — two catalogues sitting beside each other, one
+  named bare and one with `./` — was refused as *"these files are in 2
+  directories"*, which was not true of the files. `one_directory`
+  compared the spelling of each parent, and `Path::parent` answers
+  `Some("")` for a bare name where `./de.json` gives `"."`. The third
+  place this crate read an empty parent as a real path; 0.3.3 fixed the
+  other two.
 ## [0.3.3] - 2026-08-15
 
 ### Fixed
@@ -355,3 +367,4 @@ differ from every other for a reason that is not the catalogues.
 [0.3.1]: https://crates.io/crates/i18n-le/0.3.1
 [0.3.2]: https://crates.io/crates/i18n-le/0.3.2
 [0.3.3]: https://crates.io/crates/i18n-le/0.3.3
+[0.3.4]: https://crates.io/crates/i18n-le/0.3.4

@@ -335,10 +335,10 @@ fn zip(files: &[PathBuf], names: Vec<String>, locales: Vec<Option<String>>) -> V
 }
 
 fn one_directory(files: &[PathBuf]) -> Result<(), String> {
-    let directories: Vec<&Path> =
+    let directories: Vec<PathBuf> =
         files
             .iter()
-            .filter_map(|file| file.parent())
+            .map(|file| directory_of(file))
             .fold(Vec::new(), |mut seen, parent| {
                 if !seen.contains(&parent) {
                     seen.push(parent);
@@ -353,6 +353,20 @@ fn one_directory(files: &[PathBuf]) -> Result<(), String> {
         ));
     }
     Ok(())
+}
+
+/// The directory a file sits in, spelled one way.
+///
+/// `Path::parent` answers `Some("")` for a bare filename rather than
+/// `None`, and `""` and `"."` are the same directory written twice — so
+/// `i18n-le en.json ./de.json` counted two of them and refused a set
+/// that was never split. Comparing the *spelling* of a path is only
+/// sound once every spelling of "here" is the same one.
+fn directory_of(file: &Path) -> PathBuf {
+    match file.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent.to_path_buf(),
+        _ => PathBuf::from("."),
+    }
 }
 
 /// The name a file is reported under: a base name, because a full path
@@ -375,4 +389,25 @@ fn name_of(path: &Path) -> String {
 pub(crate) fn read_text(path: &Path) -> Result<String, String> {
     let bytes = std::fs::read(path).map_err(|error| error.to_string())?;
     String::from_utf8(bytes).map_err(|_| "not UTF-8 text".to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `""` and `"."` are the same directory written two ways, and
+    /// `Path::parent` hands back the first for a bare filename. Naming
+    /// two catalogues that sit beside each other — one spelled bare, one
+    /// with `./` — was refused as a set spanning two directories.
+    #[test]
+    fn two_spellings_of_here_are_one_directory() {
+        let files = vec![PathBuf::from("en.json"), PathBuf::from("./de.json")];
+        assert!(one_directory(&files).is_ok(), "{:?}", one_directory(&files));
+
+        let split = vec![PathBuf::from("en.json"), PathBuf::from("locales/de.json")];
+        assert!(
+            one_directory(&split).is_err(),
+            "a real split is still refused"
+        );
+    }
 }
