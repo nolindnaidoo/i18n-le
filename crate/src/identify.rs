@@ -160,10 +160,19 @@ fn anchor_of(inputs: &[PathBuf]) -> Result<PathBuf, String> {
         .ok_or_else(|| "name the directory holding the catalogues".to_string())?;
     let metadata =
         std::fs::metadata(first).map_err(|error| format!("{}: {error}", first.display()))?;
+    // `Path::parent` answers `Some("")` for a bare filename rather than
+    // `None`, so `unwrap_or(".")` never fires for the one input that
+    // needs it and the anchor comes out empty. `i18n-le en.json` then
+    // failed with `: No such file or directory` — an error naming no
+    // file, from a path the user never typed — while `./en.json`, the
+    // same file, was read.
     let directory = if metadata.is_dir() {
         first.clone()
     } else {
-        first.parent().unwrap_or(Path::new(".")).to_path_buf()
+        match first.parent() {
+            Some(parent) if !parent.as_os_str().is_empty() => parent.to_path_buf(),
+            _ => PathBuf::from("."),
+        }
     };
     std::fs::canonicalize(&directory).map_err(|error| format!("{}: {error}", directory.display()))
 }
@@ -802,6 +811,20 @@ mod tests {
 
     fn found(tree: &TempTree, at: &str) -> Identified {
         identify(&[tree.path().join(at)], Requested::Detect).expect("identifies")
+    }
+
+    /// A filename with no directory in front of it. Every other test
+    /// here builds an absolute path from a `TempTree`, which always has
+    /// a parent, so none of them could reach the case where
+    /// `Path::parent` answers `Some("")` and the anchor came out empty.
+    #[test]
+    fn a_bare_filename_anchors_where_its_dotted_spelling_does() {
+        let bare = anchor_of(&[PathBuf::from("Cargo.toml")]).expect("an anchor");
+        let dotted = anchor_of(&[PathBuf::from("./Cargo.toml")]).expect("an anchor");
+        assert_eq!(
+            bare, dotted,
+            "how the argument was spelled must not change the anchor"
+        );
     }
 
     fn refusal(tree: &TempTree, at: &str) -> String {

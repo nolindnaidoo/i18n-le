@@ -5,6 +5,19 @@ The Rust CLI and MCP server.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2026-08-15
+
+### Fixed
+
+- **`i18n-le en.json` reads the catalogue instead of failing.** A
+  filename with no directory in front of it exited 2 with `: No such
+  file or directory` — an error naming no file, about a path nobody
+  typed. `Path::parent` answers `Some("")` for a bare name rather than
+  `None`, so `unwrap_or(".")` never fired and the anchor came out empty.
+  `./en.json`, the same file, was read. Found in paths-le and swept for
+  here; the tests could not reach it because every one of them builds an
+  absolute path from a `TempTree`.
+
 ## [0.3.2] - 2026-08-15
 
 ### Fixed
@@ -341,3 +354,4 @@ differ from every other for a reason that is not the catalogues.
 [0.1.0]: https://crates.io/crates/i18n-le/0.1.0
 [0.3.1]: https://crates.io/crates/i18n-le/0.3.1
 [0.3.2]: https://crates.io/crates/i18n-le/0.3.2
+[0.3.3]: https://crates.io/crates/i18n-le/0.3.3
