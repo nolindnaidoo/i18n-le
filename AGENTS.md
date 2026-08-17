@@ -110,14 +110,23 @@ author's alone.
 
 ## Release
 
-The crate publishes from `crate/` by **dispatching
-`release-crate.yml`**, never by pushing a tag: a crates.io version can
-never be reused, so the irreversible step is one a person chooses on
-purpose, and the workflow refuses a version the registry already
-carries. **It is on crates.io**; `crate/Cargo.toml` and
-`crate/CHANGELOG.md` are the source of truth for what ships next, and
-`crate/Cargo.toml` running ahead of the registry is a release waiting to
-be dispatched rather than a mismatch.
+The crate publishes from `crate/` by running **`cargo publish` locally**,
+reading the owner's own cargo credentials. **It is on crates.io.**
+`crate/Cargo.toml` and `crate/CHANGELOG.md` are the source of truth for
+what ships next, and `crate/Cargo.toml` running ahead of the registry is
+a release waiting to be published rather than a mismatch.
+
+**`release-crate.yml`'s publish job cannot publish.** It is gated on a
+`crates-io` environment holding `CARGO_REGISTRY_TOKEN`, and that
+environment does not exist on this repo — the job fails on the token
+check every time. Do not wait on CI to publish a crate, and never read
+that job's outcome as the version having landed.
+
+The workflow's `publish: false` dry run is still the right preflight: it
+checks the version is unspent, that the changelog has an entry, that the
+tarball carries its corpus and none of the contributor-only files, and
+that extraction parity holds. Dispatch that, confirm the Windows job in
+`CI (crate)` is green on the exact commit, then `cargo publish` locally.
 
 ## Known limitations (documented, not bugs)
 
