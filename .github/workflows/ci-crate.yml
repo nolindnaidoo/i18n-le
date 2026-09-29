@@ -391,7 +391,9 @@ jobs:
           set -euo pipefail
           cargo test --locked --test coverage_matrix -- --nocapture 2>&1 \
             | tee "$RUNNER_TEMP/matrix.txt"
-          found=$(grep -c '^coverage-matrix: ' "$RUNNER_TEMP/matrix.txt" || true)
+          # Counted anywhere on a line, not only at its start: the tests run
+          # in parallel, so a marker can print after another test's name.
+          found=$( { grep -o 'coverage-matrix: ' "$RUNNER_TEMP/matrix.txt" || true; } | wc -l)
           if [ "$found" -lt 8 ]; then
             echo "Only $found coverage-matrix markers, expected 8 — a test was"
             echo "renamed or filtered out, and this job would have passed silently."
