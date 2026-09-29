@@ -76,8 +76,8 @@ a spec must match the code.
 - **This repo shares its scaffolding with the other crate-only repos,
   not with the extension repos.** `.editorconfig`, `.gitattributes`,
   `.githooks/commit-msg`, `.github/dependabot.yml`,
-  `.github/codeql-config.yml`, `codeql.yml` and
-  `dependabot-auto-merge.yml` are byte-identical across the six, and
+  `.github/codeql-config.yml` and `codeql.yml` are byte-identical across
+  the six (`dependabot-auto-merge.yml` across all sixteen), and
   `letools-site/scripts/check-fleet.ts` is what holds them there — run
   `bun run check:fleet ../` from a checkout of the site.
 
