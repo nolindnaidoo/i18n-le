@@ -1,0 +1,33 @@
+{
+	"$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+	"name": "io.github.nolindnaidoo/i18n-le",
+	"title": "i18n-LE",
+	"description": "Audit translation catalogues: missing keys, broken placeholders. Never returns a translation.",
+	"websiteUrl": "https://letools.dev/tools/i18n-le",
+	"icons": [
+		{
+			"src": "https://raw.githubusercontent.com/nolindnaidoo/i18n-le/main/src/assets/images/icon.png",
+			"mimeType": "image/png",
+			"sizes": [
+				"128x128"
+			]
+		}
+	],
+	"repository": {
+		"url": "https://github.com/nolindnaidoo/i18n-le",
+		"source": "github"
+	},
+	"version": "1.0.0",
+	"packages": [
+		{
+			"registryType": "npm",
+			"registryBaseUrl": "https://registry.npmjs.org",
+			"identifier": "i18n-le-mcp",
+			"version": "1.0.0",
+			"runtimeHint": "npx",
+			"transport": {
+				"type": "stdio"
+			}
+		}
+	]
+}

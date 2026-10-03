@@ -1,0 +1,245 @@
+{
+	"name": "i18n-le",
+	"publisher": "nolindnaidoo",
+	"displayName": "i18n-LE",
+	"description": "Audit translation catalogues against the source locale: missing keys, broken placeholders, wrong-convention syntax — and never print a translation",
+	"version": "1.0.0",
+	"license": "MIT",
+	"author": {
+		"name": "nolindnaidoo",
+		"url": "https://nolindnaidoo.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nolindnaidoo/i18n-le.git"
+	},
+	"bugs": {
+		"url": "https://github.com/nolindnaidoo/i18n-le/issues"
+	},
+	"homepage": "https://letools.dev/tools/i18n-le",
+	"engines": {
+		"vscode": "^1.101.0",
+		"node": ">=20.0.0"
+	},
+	"categories": [
+		"Linters",
+		"Other"
+	],
+	"keywords": [
+		"i18n",
+		"l10n",
+		"localization",
+		"internationalization",
+		"translation",
+		"translations",
+		"catalogue",
+		"catalog",
+		"locale",
+		"locales",
+		"i18next",
+		"next-intl",
+		"vscode-l10n",
+		"flutter",
+		"arb",
+		"placeholder",
+		"missing-keys",
+		"mcp",
+		"model-context-protocol"
+	],
+	"icon": "src/assets/images/icon.png",
+	"l10n": "./l10n",
+	"main": "./dist/extension.js",
+	"activationEvents": [
+		"onLanguage:json",
+		"onLanguage:jsonc"
+	],
+	"capabilities": {
+		"virtualWorkspaces": {
+			"supported": "limited",
+			"description": "%manifest.capability.untrusted-workspaces.desc%"
+		},
+		"untrustedWorkspaces": {
+			"supported": "limited",
+			"description": "%manifest.capability.untrusted-workspaces.desc%"
+		}
+	},
+	"contributes": {
+		"commands": [
+			{
+				"command": "i18n-le.audit",
+				"title": "%manifest.command.audit.title%",
+				"category": "%manifest.command.category%"
+			},
+			{
+				"command": "i18n-le.openSettings",
+				"title": "%manifest.command.settings.title%",
+				"category": "%manifest.command.category%"
+			},
+			{
+				"command": "i18n-le.help",
+				"title": "%manifest.command.help.title%",
+				"category": "%manifest.command.category%"
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "i18n-le.audit",
+					"group": "1_modification@1",
+					"when": "resourceExtname == .json || resourceExtname == .arb"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "i18n-le.audit",
+					"group": "7_modification@1",
+					"when": "explorerResourceIsFolder || resourceExtname == .json || resourceExtname == .arb"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "i18n-le.audit"
+				},
+				{
+					"command": "i18n-le.openSettings"
+				},
+				{
+					"command": "i18n-le.help"
+				}
+			]
+		},
+		"keybindings": [
+			{
+				"command": "i18n-le.audit",
+				"key": "ctrl+alt+l",
+				"mac": "cmd+alt+l",
+				"when": "editorTextFocus"
+			}
+		],
+		"configuration": {
+			"title": "%manifest.settings.title%",
+			"properties": {
+				"i18n-le.copyToClipboardEnabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "%manifest.settings.copy.clipboard.desc%"
+				},
+				"i18n-le.keysAreSource": {
+					"type": "boolean",
+					"default": false,
+					"description": "%manifest.settings.keys-are-source.desc%"
+				},
+				"i18n-le.library": {
+					"type": "string",
+					"default": "auto",
+					"enum": [
+						"auto",
+						"i18next",
+						"next-intl",
+						"vscode-l10n",
+						"flutter-arb"
+					],
+					"enumDescriptions": [
+						"%manifest.settings.library.option.auto%",
+						"%manifest.settings.library.option.i18next%",
+						"%manifest.settings.library.option.next-intl%",
+						"%manifest.settings.library.option.vscode-l10n%",
+						"%manifest.settings.library.option.flutter-arb%"
+					],
+					"description": "%manifest.settings.library.desc%"
+				},
+				"i18n-le.notificationsLevel": {
+					"type": "string",
+					"default": "silent",
+					"enum": [
+						"all",
+						"important",
+						"silent"
+					],
+					"enumDescriptions": [
+						"%manifest.settings.notifications.level.option.all%",
+						"%manifest.settings.notifications.level.option.important%",
+						"%manifest.settings.notifications.level.option.silent%"
+					],
+					"description": "%manifest.settings.notifications.level.desc%"
+				},
+				"i18n-le.openResultsSideBySide": {
+					"type": "boolean",
+					"default": true,
+					"description": "%manifest.settings.open.side-by-side.desc%"
+				},
+				"i18n-le.source": {
+					"type": "string",
+					"default": "",
+					"description": "%manifest.settings.source.desc%"
+				},
+				"i18n-le.statusBar.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "%manifest.settings.statusbar.enabled.desc%"
+				},
+				"i18n-le.telemetryEnabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "%manifest.settings.telemetry.desc%"
+				}
+			}
+		},
+		"mcpServerDefinitionProviders": [
+			{
+				"id": "i18n-le",
+				"label": "%manifest.mcp.label%"
+			}
+		]
+	},
+	"scripts": {
+		"clean": "node -e \"const fs=require('fs');['dist','coverage','release'].forEach(d=>fs.rmSync(d,{recursive:true,force:true}))\"",
+		"clean:i18n": "node -e \"const fs=require('fs');fs.readdirSync('.').filter(f=>f.startsWith('package.nls.')&&f.endsWith('.json')&&f!=='package.nls.json').forEach(f=>fs.unlinkSync(f))\"",
+		"copy:i18n": "node -e \"const fs=require('fs');fs.readdirSync('src/i18n').filter(f=>f.startsWith('package.nls.')&&f.endsWith('.json')).forEach(f=>fs.copyFileSync('src/i18n/'+f,f))\"",
+		"build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node20 --main-fields=module,main --sourcemap",
+		"build:prod": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node20 --main-fields=module,main --minify --sourcemap=external",
+		"watch": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node20 --main-fields=module,main --sourcemap --watch",
+		"typecheck": "tsc --noEmit",
+		"check:bundle": "node scripts/check-bundle.js",
+		"build:mcp": "node scripts/build-mcp.js",
+		"build:mcp:prod": "node scripts/build-mcp.js --prod",
+		"check:mcp-bundle": "node scripts/check-mcp-bundle.js",
+		"build:npm": "node scripts/build-npm.js",
+		"check:npm-package": "node scripts/check-npm-package.js",
+		"test": "vitest run --pool=threads",
+		"test:watch": "vitest --pool=threads",
+		"test:coverage": "vitest run --coverage --pool=threads --reporter=default --reporter=json --outputFile.json=coverage/test-results.json",
+		"benchmark": "bun scripts/benchmark.ts",
+		"perf:readme": "node scripts/perf-readme.js",
+		"coverage:readme": "node scripts/coverage-readme.js",
+		"coverage:readme:check": "node scripts/coverage-readme.js --check",
+		"readme": "bun run test:coverage && bun run coverage:readme",
+		"test:integration": "npm run build && tsc -p tsconfig.it.json && vscode-test",
+		"test:e2e-vsix": "node scripts/e2e-vsix.js",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"vscode:prepublish": "npm run typecheck && npm run build:prod && npm run build:mcp:prod && npm run check:bundle && npm run check:mcp-bundle && npm run copy:i18n",
+		"package": "node -e \"require('fs').mkdirSync('release',{recursive:true})\" && vsce package --no-dependencies --out release/ && npm run clean:i18n",
+		"publish": "vsce publish",
+		"hooks:install": "node scripts/install-hooks.js",
+		"lint:commits": "node scripts/commit-lint.js --range origin/main..HEAD",
+		"prepare": "node scripts/install-hooks.js"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.15",
+		"@types/ini": "^4.1.1",
+		"@types/js-yaml": "^4.0.9",
+		"@types/mocha": "^10.0.10",
+		"@types/node": "^26.6.3",
+		"@types/vscode": "1.101.0",
+		"@vitest/coverage-v8": "^4.1.11",
+		"@vscode/test-cli": "^0.0.15",
+		"@vscode/test-electron": "^3.1.0",
+		"@vscode/vsce": "^4.0.0",
+		"esbuild": "^0.28.2",
+		"mocha": "^12.0.2",
+		"ovsx": "^1.2.0",
+		"typescript": "^7.0.2",
+		"vitest": "^4.1.11"
+	}
+}
