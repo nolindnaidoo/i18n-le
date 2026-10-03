@@ -78,36 +78,44 @@ const BREAKERS: ReadonlyArray<(text: string, random: () => number) => string> = 
 	},
 	(t) => t.replace(/}\s*$/, ',}'),
 	(t) => `${t} trailing`,
-	(t) => t.replace('{', '{"n": 1e400, '),
-	(t) => t.replace('{', '{"n": 01, '),
-	(t) => t.replace('{', '{"n": 1., '),
-	(t) => t.replace('{', '{"n": -, '),
-	(t) => t.replace('{', '{"n": 1e, '),
-	(t) => t.replace('{', '{"s": "\\ud800", '),
-	(t) => t.replace('{', '{"s": "\\udc00", '),
-	(t) => t.replace('{', '{"s": "\\ud800\\u0041", '),
-	(t) => t.replace('{', '{"s": "\\ud800x", '),
-	(t) => t.replace('{', '{"s": "\\x", '),
-	(t) => t.replace('{', '{"s": "\\u12G4", '),
-	(t) => t.replace('{', '{"s": "\\u12'),
-	(t) => t.replace('{', '{"s": "tab\there", '),
-	(t) => t.replace('{', '{"t": tru, '),
-	(t) => t.replace('{', '{"t": nul'),
-	(t) => t.replace('{', '{1: "x", '),
-	(t) => t.replace('{', '{"a" "x", '),
-	(t) => t.replace('{', `{"deep": ${'{"d":'.repeat(130)}1${'}'.repeat(130)}, `),
-	(t) => t.replace('{', `{"deep": ${'{"d":'.repeat(126)}1${'}'.repeat(126)}, `),
-	(t) => t.replace('{', `{"list": ${'['.repeat(200)}${']'.repeat(200)}, `),
-	(t) => t.replace('{', '{"list": [1, 2,], '),
-	(t) => t.replace('{', '{"list": [1 2], '),
-	(t) => t.replace('{', '{"list": [{"a" 1}], '),
-	(t) => t.replace('{', '{"list": [{"a": 1,}], '),
-	(t) => t.replace('{', '{"list": [{1: 2}], '),
+	(t) => afterBrace(t, '{"n": 1e400, '),
+	(t) => afterBrace(t, '{"n": 01, '),
+	(t) => afterBrace(t, '{"n": 1., '),
+	(t) => afterBrace(t, '{"n": -, '),
+	(t) => afterBrace(t, '{"n": 1e, '),
+	(t) => afterBrace(t, '{"s": "\\ud800", '),
+	(t) => afterBrace(t, '{"s": "\\udc00", '),
+	(t) => afterBrace(t, '{"s": "\\ud800\\u0041", '),
+	(t) => afterBrace(t, '{"s": "\\ud800x", '),
+	(t) => afterBrace(t, '{"s": "\\x", '),
+	(t) => afterBrace(t, '{"s": "\\u12G4", '),
+	(t) => afterBrace(t, '{"s": "\\u12'),
+	(t) => afterBrace(t, '{"s": "tab\there", '),
+	(t) => afterBrace(t, '{"t": tru, '),
+	(t) => afterBrace(t, '{"t": nul'),
+	(t) => afterBrace(t, '{1: "x", '),
+	(t) => afterBrace(t, '{"a" "x", '),
+	(t) => afterBrace(t, `{"deep": ${'{"d":'.repeat(130)}1${'}'.repeat(130)}, `),
+	(t) => afterBrace(t, `{"deep": ${'{"d":'.repeat(126)}1${'}'.repeat(126)}, `),
+	(t) => afterBrace(t, `{"list": ${'['.repeat(200)}${']'.repeat(200)}, `),
+	(t) => afterBrace(t, '{"list": [1, 2,], '),
+	(t) => afterBrace(t, '{"list": [1 2], '),
+	(t) => afterBrace(t, '{"list": [{"a" 1}], '),
+	(t) => afterBrace(t, '{"list": [{"a": 1,}], '),
+	(t) => afterBrace(t, '{"list": [{1: 2}], '),
 	() => '[]',
 	() => '"text"',
 	() => '',
 	() => '   ',
 ];
+
+/**
+ * Insert text just after the document's opening brace. Every generated
+ * catalogue starts with `{`, so this adds a member (or a defect) at the front.
+ */
+function afterBrace(text: string, inserted: string): string {
+	return `${text.slice(0, 1)}${inserted}${text.slice(1)}`;
+}
 
 function pickFrom<T>(random: () => number, list: readonly T[]): T {
 	return list[Math.floor(random() * list.length)] as T;
@@ -138,7 +146,9 @@ function generate(count: number, seed: number): Generated[] {
 			const key = JSON.stringify(pick(KEYS)).slice(1, -1);
 			const roll = random();
 			let value: string;
-			if (roll < 0.62) value = `"${message().replace(/"/g, '\\"')}"`;
+			// The pieces are JSON source already — their escapes are meant to be read
+			// by the parser — so the message is quoted, never re-escaped.
+			if (roll < 0.62) value = `"${message()}"`;
 			else if (roll < 0.78 && depth < 3) value = object(depth + 1);
 			else value = pick(NON_STRINGS);
 			members.push(`"${key}": ${value}`);
