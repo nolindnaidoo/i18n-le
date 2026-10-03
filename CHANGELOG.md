@@ -1,11 +1,36 @@
 # Changelog
 
-The i18n-le repository. The crate keeps its own history in
-[`crate/CHANGELOG.md`](crate/CHANGELOG.md); this file covers the
-repository around it.
+All notable changes to i18n-LE will be documented here.
 
-Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+This file covers the **VS Code extension**. The Rust CLI in `crate/` is a
+separate product on its own cadence and keeps its own
+[CHANGELOG](crate/CHANGELOG.md). The entries below 1.0.0 describe this
+repository while it held the CLI alone.
+
+## [Unreleased]
+
+### Added
+
+- **The VS Code extension.** `i18n-LE: Audit Catalogues` audits the set the
+  open catalogue belongs to — or a folder picked in the Explorer — against the
+  source locale, and opens a report naming each finding by file, key, kind and
+  severity with its structural evidence. No translated string is ever shown.
+- **Identification before anything is read**, as the crate does it: manifests,
+  config files, the layout, the catalogue syntax and call sites, two agreeing,
+  or a refusal naming what was found. `i18n-le.library` names the library and
+  skips identification; `i18n-le.source` names the source catalogue.
+- **The MCP server in the VSIX and on npm** as `i18n-le-mcp`: the same
+  `check_catalogues` tool the Rust CLI serves, answering identically.
+- **The engine is a port of the crate's**, held to it by the shared corpus, a
+  differential that feeds both servers thousands of generated catalogue sets —
+  broken JSON included, reported in serde_json's own words — a check that runs
+  the extension's identification and the CLI's over generated project trees,
+  and a check that both servers define the tool identically.
+- Localized into twelve languages: the manifest and every runtime string.
+- A Zed extension that runs the MCP server as a context server.
 
 ## [0.3.1] - 2026-08-14
 

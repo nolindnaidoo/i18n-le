@@ -1,140 +1,346 @@
-# AGENTS.md — i18n-le
+# AGENTS.md — i18n-LE
+
+Technical source of truth for this repo. README.md is the user-facing doc; this file is for anyone (human or agent) changing the code.
+
+This repo hosts **two products**: the extension at the root (this document's scope) and the Rust CLI in `crate/` (its own `AGENTS.md` + `SPEC.md`, which defines what the tool is allowed to say). The shared corpus lives at `crate/fixtures/`. `scripts/check-audit-parity.ts` fails CI when this extension drifts from it, `scripts/check-audit-differential.ts` feeds both MCP servers generated catalogue sets and fails on any difference, `scripts/check-identify-port.ts` holds the extension's identification to the crate's over generated project trees, and `scripts/check-mcp-definition.ts` fails when the two servers define `check_catalogues` differently.
 
 ## What this is
 
-**This repository is crate-only.** Everything that is the product lives
-in [`crate/`](crate/): the Rust CLI, the MCP server, the library table,
-the corpus and the tests. There is no VS Code extension beside it, no
-`src/` at the root, and no npm package — so unlike the two-frontend
-siblings in this family there is no parity contract to keep and nothing
-here holds two implementations equal.
+A VS Code extension that audits a set of translation catalogues against one of them — missing and extra keys, placeholders dropped or renamed, constructs from another convention, empty values, duplicate keys, structure that differs between locales — after identifying which i18n library the project uses. It opens a Markdown report naming keys and structural facts, never a translated string. It rewrites nothing. No network access, no filesystem writes.
 
-That makes this file a router rather than a standard of its own:
+## Architecture
 
-| Question | File |
-|---|---|
-| How should this code be written? | [`crate/AGENTS.md`](crate/AGENTS.md) — the engineering standard, the layout, the settled decisions, the testing requirements, the definition of done |
-| What is this tool supposed to do? | [`crate/SPEC.md`](crate/SPEC.md) — the checks, the refusal rule, the exit codes, both surfaces |
-| What does a user see? | [`crate/README.md`](crate/README.md) — the full user-facing document |
-| What changed? | [CHANGELOG.md](CHANGELOG.md) for the repository, [`crate/CHANGELOG.md`](crate/CHANGELOG.md) for the published crate |
-
-**`crate/AGENTS.md` wins on any conflict.** It is the source of truth
-for anything inside `crate/`, which is everything that runs.
-
-## Gates
-
-```bash
-cd crate
-cargo fmt --all --check
-cargo clippy --all-targets -- -D warnings
-cargo test --locked
+```
+extension.ts             activate(): telemetry/notifier/statusBar -> registerCommands()
+commands/                audit (the folder to audit, then scan, then the report),
+                         workspaceFs (the engine's filesystem over vscode.workspace.fs)
+audit/                   THE engine, a port of the crate — pure, no vscode:
+  json.ts                serde_json 1.0.151's parser, transcribed: duplicate-keeping,
+                         and failing with serde_json's own message, line and byte column
+  catalogue.ts           catalogue.rs: flatten, resolve duplicates (last value wins)
+  locale.ts              locale.rs: tags, the shared-prefix rule, fixed prefixes
+  library.ts             library.rs: the four rows — grammar, plurals, layouts, evidence
+  message.ts             message.rs: the placeholder lexer over UTF-8 bytes, and the
+                         grammar-free marks identification reads
+  audit.ts               audit.rs: the checks
+  report.ts              scan::report_for: one audit over content in hand
+  layout.ts              layout.rs: which files the set is, and each one's locale
+  identify.ts            identify.rs: the five evidence classes and the decision
+  scan.ts                scan::scan: identify, read, audit
+  fs.ts, text.ts         the filesystem seam; Rust's trim, lines and whitespace
+report/format.ts         the Markdown report
+mcp/                     the npm server: tools.ts (check_catalogues), transport.ts
+ui/, config/, telemetry/ as in every sibling
+types.ts                 shared types only — no logic
 ```
 
-All three, exactly as CI runs them. A change is not done because it
-compiles; it is done when it is tested, linted, documented where
-behaviour changed, and honest — every claim in a README, a help text or
-a spec must match the code.
+Conventions: factory functions + `Object.freeze` (no classes outside the JSON reader), guard clauses, dependency bags typed inline at the consumer — see **Code style** below. Both the manifest and the runtime strings are localized into 12 locales; see **Toolchain**.
 
-## Things that will bite you
+## The engine is the crate's
 
-- **This tool has a verdict, and the exit code is the product.** Most of
-  the family extracts and holds no opinion; this one answers a
-  yes-or-no question. 0 is clean — including when there are no
-  catalogues, because there is nothing to be wrong with. 1 is findings.
-  2 is a malformed question, and *no library could be identified* is a
-  malformed question rather than a clean answer. Do not "improve" the
-  no-catalogues case into a failure.
-- **No translated value ever reaches an answer.** Keys and placeholder
-  tokens only. The types are shaped so a translated string has nowhere
-  to go, and that is the design rather than a discipline.
-- **Identification runs first and everything is downstream of it.** The
-  grammar, the plural model, the metadata rule and the layout are all
-  read off the row `identify.rs` returns; the audit cannot start without
-  one. It is not a helper the audit consults when stuck.
-- **`identify.rs` reads; `library.rs` decides what a reading means.**
-  Adding a library is a row in the table *as long as everything it needs
-  already exists*. A genuinely new syntax also needs one `Mark`
-  predicate in `message.rs`; a new manifest kind needs a reader in
-  `identify.rs`. Anything else outside the table means the table is
-  wrong — `crate/CLAUDE.md` states this precisely, so "adding a library
-  is a row" is not read as more than it claims.
-- **Refuse rather than guess.** A construct the lexer does not read, a
-  locale it cannot name, a set spanning two directories — each is a
-  refusal with a reason, never a fabricated answer. A test that passes
-  by resolving something that should have been refused is the bug this
-  whole family exists to prevent.
-- **Never add an inline lint attribute** — not `#[allow]`, not
-  `#[expect]`, in `src/` or in `tests/`. The `policy` CI job greps for
-  both spellings across both directories, because a gate that knows one
-  of them is a gate that gets routed around by accident.
-- **Coverage floors are a backstop, not a target.** 75% of lines per
-  module across the pure modules — `library.rs`, `catalogue.rs`,
-  `message.rs`, `locale.rs`, `audit.rs` — and the `coverage` job lists
-  them by name, so renaming one turns the job red instead of quietly
-  making it check nothing. The floor sits well below where the code
-  actually is and is not raised to track it.
-- **This repo shares its scaffolding with the other crate-only repos,
-  not with the extension repos.** `.editorconfig`, `.gitattributes`,
-  `.githooks/commit-msg`, `.github/dependabot.yml`,
-  `.github/codeql-config.yml` and `codeql.yml` are byte-identical across
-  the six (`dependabot-auto-merge.yml` across all sixteen), and
-  `letools-site/scripts/check-fleet.ts` is what holds them there — run
-  `bun run check:fleet ../` from a checkout of the site.
+`src/audit/` is a port of `crate/src/`, held to it four ways: the corpus (`check-audit-parity.ts`, `corpus.test.ts`), the differential (thousands of generated catalogue sets through both MCP servers, broken JSON included), the identification port check (generated project trees through the CLI and the engine), and the definition check. A difference is a bug in one of them.
 
-  Three things are **not** shared, each for its own reason:
-  - `ci-crate.yml` and `release-crate.yml` are each repo's own. The
-    crates stand on their own, and a job one needs and another does not
-    is the point rather than a failure.
-  - The agent instruction files are one document *within* a repo and
-    never across them — each states its own tool's non-negotiables.
-  - The extension-shaped files — `ci.yml`, `biome.json`,
-    `tsconfig*.json`, `release.yml`, `zed-sync.yml` — do not exist here
-    at all. Copying one across from a two-frontend sibling re-imposes a
-    shape this repo does not have.
-- **CI narrows itself on a docs-only push.** `ci-crate.yml` fires on
-  `*.md` and the agent instruction files — it has to, because the
-  `policy` job greps them. On such a push `policy` and `commits` run and
-  every Rust job skips. Anything unrecognised, and an unreadable diff,
-  counts as code and runs everything.
-- **Run the binary, not only the tests.** A green suite has never been
-  the whole answer anywhere in this family.
+- **The JSON reader is serde_json's.** `JSON.parse` folds a repeated key into the last one — the defect `duplicate-key-within-file` reports — and a file that will not parse is reported with serde_json's message and byte column. `json.ts` transcribes the paths the crate's visitor drives (`deserialize_any`, `ignore_value` for array elements, the 128-level limit on objects and arrays but not on drained elements). Every expectation in `json.test.ts` was read back from the crate's server, not written from memory.
+- **Bytes where the crate counts bytes.** The lexer scans UTF-8, so a `convention-mismatch` offset is a byte offset. Decoders keep a leading U+FEFF (`ignoreBOM: true`): a string that begins with one is content, and the differential found the default dropping it.
+- **Rust's whitespace and line splitting.** `empty-value` uses Rust's `trim` (U+0085 is whitespace, U+FEFF is not); the pubspec reader uses `str::lines` (a CR is dropped only before an LF).
+- **serde_json's map order.** A manifest's dependencies are read in sorted key order, because that is the order `serde_json::Map` hands the crate, and the evidence list follows it.
+- **Only refusal wording may differ, and only in one phrase.** The CLI tells a reader to name the library "with --system <name>"; the extension says "in the i18n-le.library setting". The engine takes that phrase as an argument, and the port check passes the CLI's.
 
-## Git and commits
+## Code style
 
-Conventional, imperative, scoped to the files the change touches. Every
-commit uses the GitHub noreply address
-`13629544+nolindnaidoo@users.noreply.github.com` — a real address in
-commit metadata is public forever and gets scraped. No AI attribution of
-any kind: not a trailer, not a footer, not a comment. Commits are the
-author's alone.
+These are not preferences to weigh against convenience. They are the shape the
+code is expected to take, and a review rejects work that ignores them. The
+reason each one exists is stated, because a rule without a reason gets
+cargo-culted into places it does not belong.
+
+### Control flow
+
+**Guard clauses first, then the work.** Every function opens with its
+preconditions, each one returning immediately. The body that follows is the
+happy path at a single indent level, and it reads top to bottom.
+
+```ts
+// Yes — preconditions leave, then the real work runs unindented.
+function extract(document: TextDocument, config: Configuration): Result {
+	if (!document) return EMPTY;
+	if (!isSupported(document.languageId)) return unsupported(document.languageId);
+
+	const text = document.getText();
+	if (!text.trim()) return EMPTY;
+
+	return runExtraction(text, config);
+}
+```
+
+**No `else`. No `else if`.** An `else` is a guard clause that has not been
+extracted yet. Two branches become an early return; many branches become a
+lookup table or a `switch` that returns from every arm. This is the rule that
+does the most work in practice — it is what keeps nesting flat, keeps diffs
+small, and stops a function growing a second responsibility inside its own
+`else`.
+
+```ts
+// No.
+if (kind === 'hex') {
+	return parseHex(value);
+} else if (kind === 'rgb') {
+	return parseRgb(value);
+} else {
+	return null;
+}
+
+// Yes — a table. Adding a format touches one line and no control flow.
+const PARSERS: Readonly<Record<ColorKind, Parser>> = Object.freeze({
+	hex: parseHex,
+	rgb: parseRgb,
+	hsl: parseHsl,
+});
+
+function parse(kind: ColorKind, value: string): Color | null {
+	const parser = PARSERS[kind];
+	if (!parser) return null;
+	return parser(value);
+}
+```
+
+**Maximum nesting is two levels inside a function.** A third level means the
+inner block wants to be its own named function. Loops containing conditionals
+containing conditionals are where bugs hide, because no reader holds all three
+conditions at once.
+
+**Truthy checks.** `if (!value)` rather than
+`if (value === undefined || value === null || value === '')`. The exception is
+real and must be respected: when `0`, `''` or `false` are legitimate values,
+test explicitly (`value === undefined`, `Number.isFinite(value)`). A threshold
+of `0`, an empty string that means "cleared", and `false` from `applyEdit` have
+all been live bugs in this family — the terse form is the default, not a
+licence to ignore the domain.
+
+### Errors
+
+**Every error path is handled and says something true.** A message names what
+failed, why, and what state the user is now in. "Extraction failed" is not a
+message; "Could not replace the document contents: the edit was rejected" is.
+
+**Never swallow.** No empty `catch`, no `catch { return null }` that erases a
+cause the caller needed, no `|| true`, no `continue-on-error`. If a failure is
+genuinely ignorable, the `catch` says why in a comment.
+
+**Failures are values where the caller must react.** A parse failure that the
+user should see is reported through the callback or return value the caller
+supplied — not thrown past it, and never turned into a silent empty result.
+Reserve `throw` for programmer error and for unwinding to a command's outer
+handler, which is the one place that decides what the user sees.
+
+**Never report success you did not achieve.** Check what the API returned.
+`vscode.workspace.applyEdit` resolves `false` for a read-only document; a
+cancelled operation delivers nothing. Announcing a count over work that never
+happened is the single most repeated defect in this family's history.
+
+### Data
+
+**Immutable by default.** `readonly` on every interface field, `ReadonlyArray`
+on every collection you do not own, `Object.freeze` on returned config and
+result objects. Never mutate a parameter. Build a new value and return it.
+Where a mutable working copy is genuinely needed, derive the mutable type
+(`type Draft<T> = { -readonly [K in keyof T]: T[K] }`) rather than
+hand-maintaining a second parallel interface that drifts.
+
+**Composition over inheritance.** Factory functions returning frozen objects,
+not classes and not `extends`. Dependencies arrive as a parameter — a typed
+deps bag — so a test supplies a fake without a framework. There is no
+inheritance hierarchy anywhere in this fleet and there should never be one.
+
+```ts
+export function createNotifier(deps: Readonly<{ config: Configuration }>): Notifier {
+	return Object.freeze({
+		showInfo: (message: string) => { /* ... */ },
+		showError: (message: string) => { /* ... */ },
+	});
+}
+```
+
+### Structure
+
+**Logic and presentation are separate, always.** Extraction, analysis and
+conversion modules compute and return data. They never call
+`vscode.window.*`, never format a user-facing sentence, never decide whether a
+notification is shown. `ui/` renders; `commands/` orchestrates. The test for
+whether you got this right: a logic module should be unit-testable without the
+`vscode` mock at all.
+
+**Where a UI framework is involved, the same rule applies to the render.**
+Compute above, return markup below. A render body holds no conditionals beyond
+a trivial ternary, no data shaping, no derivation — those are named values or
+functions above it. Anything else produces JSX no one can read, and it hides
+the logic from the tests.
+
+**Commands are thin.** A command reads config, calls logic, hands the result to
+the UI layer, and handles failure. When a command file grows a parser or a
+formatter, that code belongs in `extraction/` or `ui/`.
+
+**No god files.** Past ~300 lines, a file is doing more than one job and wants
+splitting along the seam that is already visible in its exports. `types.ts`
+holds types only — no logic, ever.
+
+**Separation of concerns, without ceremony.** One module per real concept, not
+one per function. A `utils/` folder of single-line files is as unmaintainable
+as a god file; both make you read the whole tree to understand one path.
+
+**Define it once.** Duplicate regexes, duplicate `fullDocumentRange`,
+duplicate "is this a supported scheme" checks — each has already shipped as a
+bug in this family, because copies drift and only one copy gets fixed. When you
+find yourself writing something that exists elsewhere, move it to a shared
+module in the same commit.
+
+### Comments
+
+Comments explain **why**, never what. A comment restating the code is noise
+that goes stale. A comment recording the reason a non-obvious choice was made —
+the constraint, the bug it prevents, the API quirk it works around — is the
+most valuable line in the file, and it is what keeps the next person from
+"simplifying" it back into a defect.
+
+---
+
+## Invariants (things that were once broken — keep them true)
+
+- **No translated value crosses a boundary.** A finding carries key names, tokens, counts, styles, shapes, occurrence counts or a construct with a byte offset. The report, every notification and the MCP answer hold nothing else. `report/format.test.ts`, `mcp.test.ts`, the commands test and `check:mcp-bundle` each assert a translation never appears.
+- **Identification runs first and nothing guesses.** No library identified, or two, is a refusal naming the evidence. The extension never falls back to a default library; the setting is how a person names one.
+- **Source files are read only to identify the library.** No finding ever comes from a source file.
+- **A catalogue that cannot be read or parsed is named, never dropped.** It is a diagnostic in the report, and the rest of the set is still audited.
+- **The bundle must be self-contained.** The VSIX ships `dist/extension.js` only; `scripts/check-bundle.js` (run in `vscode:prepublish` and CI) does a static require scan AND loads the bundle with `vscode` stubbed.
+- **`CONFIG_DEFAULTS` must equal package.json defaults.** `config.test.ts` asserts parity over every declared setting, and that the library setting offers exactly the engine's libraries.
+- **Every declared setting must have a consumer, and every declared command must be registered.** The integration suite checks the second in a real host.
+- **nls catalogues stay in key-parity**, and every translation is in its own language — `letools-site`'s `check-locales` holds that across the family.
+- **The MCP server must never reference `vscode`**, and launching it needs `ELECTRON_RUN_AS_NODE=1`; `scripts/e2e-vsix.js` spawns the installed server exactly as `provider.ts` does.
+
+## Toolchain
+
+- **Runtime targets:** `engines.vscode` is the supported floor and `@types/vscode` is pinned to it **exactly**. A caret there lets the type surface drift ahead of the version users actually run, so code compiles against APIs that are not there at runtime. Dependabot is configured to never bump it.
+- **Build:** esbuild bundle (`bun run build`, `build:prod` minified). `tsc` is typecheck-only (`noEmit`) and covers test files. TypeScript 7.
+- **Unit tests:** vitest 4; `vscode` aliased to `src/__mocks__/vscode.ts` (stateful mock with `_reset/_set` helpers). Coverage provider `v8`, thresholds enforced at **75 lines / 80 functions / 60 branches / 75 statements**. These are a backstop against a module nobody tested, not a target — they sit well below where the code actually is, and they are not raised to track it. Lower them only with a reason; do not raise them to chase a number.
+- **Integration tests:** `bun run test:integration` — `@vscode/test-cli` launches a real VS Code (config in `.vscode-test.mjs`, tests compiled via `tsconfig.it.json` to `out-test/`). That project targets `node16` module resolution; TypeScript 7 removed `node10`, which `"Node"` resolved to.
+- **Installed-VSIX tests:** `bun run test:e2e-vsix` installs the built `.vsix` into a clean VS Code profile and drives it. This is the only test that exercises the artifact users receive, and it runs in CI.
+- **Lint/format:** Biome (tabs, single quotes). `__fixtures__`/`__snapshots__` are exempt — formatting fixtures would corrupt goldens. `biome.json` is one of the files `letools-site/scripts/check-fleet.ts` holds byte-identical across all ten repos; change it in one, copy it to the rest, and let `bun run check:fleet ../` say whether a copy was missed.
+- **Packaging:** `bun run package` → `release/*.vsix`. `.vscodeignore` is an allow-list; the VSIX ships only the bundle, the MCP server, the catalogues, the icon and the docs. Packaging uses `--no-dependencies`: the bundle is self-contained, so walking the npm tree served no purpose and broke after any dependency change.
+- **Localization:** two separate mechanisms. The 12 `package.nls.*.json` catalogues in `src/i18n/` localize **manifest** strings (VS Code `%key%` substitution) and are copied to the package root at prepublish, then removed by `clean:i18n`. The 12 `l10n/bundle.l10n.*.json` catalogues localize **runtime** strings via `vscode.l10n.t()`, enabled by `"l10n": "./l10n"` in package.json. They fail independently: a working manifest says nothing about the runtime bundles. The rules that keep both correct are under **Code style** above.
+
+- **npm package:** `bun run build:npm` assembles `mcp/` and writes its version from the root manifest, so the two can never claim the same version while carrying different code. `bun run check:npm-package` packs it, installs the tarball into a throwaway project and drives the *installed* binary through a handshake — which is what `npx` does, minus the registry. Run it before publishing: a version cannot be reused, and the unpublish window is 72 hours.
+
+## Generated documentation
+
+Two README sections are generated. Do not hand-edit the content between their markers.
+
+- `bun run test:coverage && bun run coverage:readme` writes the Testing section from `coverage/coverage-summary.json`. CI runs `coverage:readme:check`, which fails when the committed numbers no longer match a real run — coverage is compared within 1 percentage point (it is not bit-identical across machines), while test counts are derived from source and must match exactly.
+- `bun run benchmark && bun run perf:readme` writes the Performance section from a real run of `reportFor` over generated catalogue sets. This is **not** checked in CI: throughput is machine-specific, so a hosted runner would fail it for reasons that say nothing about the code. The host is printed with the numbers instead.
+
+A sibling's README once carried hand-written test counts and throughput figures that drifted until they were false. Generating them is what stops that recurring.
+
+## Security & automation
+
+- **CodeQL** runs on push, PR and weekly (`javascript-typescript` + `actions`), configured in `.github/codeql-config.yml`. Test files and fixtures are excluded on purpose: they contain inputs that are supposed to look dangerous, and scanning them produces findings that can only ever be dismissed.
+- **Dependabot** (`bun` ecosystem, not `npm` — the npm updater rewrites `package.json` without regenerating `bun.lock`, so its PRs can never pass the frozen-lockfile gate) opens grouped weekly PRs. `cargo` covers `crate/` and `zed/`.
+- **Auto-merge** is workflow-driven, not GitHub-native: `main` has no required status checks, so native auto-merge would land a PR before CI started. `dependabot-auto-merge.yml` waits for every other check on the head commit to pass, then merges any update but a major, runtime dependencies included: a merge publishes nothing, and the VSIX only ships from a manual release. Majors need a human. After a merge it dispatches CI on `main`, because a merge made with `GITHUB_TOKEN` starts no push run and each PR was only tested against its own base. The workflow is byte-identical across all sixteen tool repos.
+- **Actions are pinned to commit SHAs.** A tag is mutable and this repo holds a publish token. The trailing `# vX.Y.Z` comment is what Dependabot reads and rewrites.
+- **Branch safety:** a `main-safety` ruleset blocks deletion and force-push. Pushes to `main` are otherwise unrestricted by design.
+- Secret scanning and push protection are enabled. `VSCE_PAT` and `OVSX_PAT` live in repo secrets and in Doppler (`extensions` / `prd`).
+
+## Agent and editor instructions
+
+Every major coding assistant looks for its own instruction file, so each one is
+present and each is a thin pointer to this document:
+
+| File | Tool |
+|---|---|
+| `AGENTS.md` | the standard itself — OpenAI Codex and others read this directly |
+| `CLAUDE.md` | Claude Code |
+| `GEMINI.md` | Gemini CLI |
+| `.cursorrules`, `.cursor/rules/project.mdc` | Cursor (legacy and current formats) |
+| `.windsurfrules` | Windsurf |
+| `.clinerules` | Cline |
+| `.github/copilot-instructions.md` | GitHub Copilot |
+
+**Keep them thin.** They restate the non-negotiables and route the reader here;
+they must never grow a second copy of the standard, because a copy drifts and
+then two tools disagree about the same repository. Change the standard here,
+and only the pointer's short list if a non-negotiable itself changed.
+
+None of them ship: `.vscodeignore` is an allow-list, so the VSIX is unaffected.
+
+## Git identity
+
+Every commit uses the GitHub noreply address:
+
+```
+13629544+nolindnaidoo@users.noreply.github.com
+```
+
+A real address in commit metadata is public forever — GitHub's API serves it
+for any public repo, and scrapers harvest it. Never set a real address in
+`user.email`, globally or repo-locally, and never commit with one. GitHub's
+*Block command line pushes that expose my email* is the backstop; the global
+config is the default. A repo-local `user.email` silently overrides the global
+one, so check `git config user.email` in a fresh clone before the first commit.
+
+## Commits
+
+Subjects use a conventional prefix — `feat:`, `fix:`, `docs:`, `test:`, `ci:`,
+`build:`, `chore:`, `refactor:`, `perf:`, `revert:` — an optional `(scope)`,
+and an imperative summary with no trailing period. The body says why the
+change was needed and what it prevents; a subject alone is rarely enough to
+reconstruct a decision six months later.
+
+This is enforced, not just documented:
+
+- **`commit-msg` hook** — `bun run hooks:install` points `core.hooksPath` at
+  `.githooks/`, and `prepare` runs it on install, so a fresh clone is wired
+  after `bun install`. It rejects the message before the commit exists.
+- **CI** — the `Commit messages` job runs the same validator over the pushed
+  range. The hook is skippable with `--no-verify`; this is not, so skipping it
+  delays the failure rather than avoiding it.
+
+Both call one implementation, `scripts/commit-lint.js`, so the rules cannot
+drift apart. Check a branch yourself with `bun run lint:commits`. Merge commits
+are exempt — git writes those subjects, not a person. Only the commits in a
+push are checked, so history predating the gate is left alone.
 
 ## Release
 
-The crate publishes from `crate/` by running **`cargo publish` locally**,
-reading the owner's own cargo credentials. **It is on crates.io.**
-`crate/Cargo.toml` and `crate/CHANGELOG.md` are the source of truth for
-what ships next, and `crate/Cargo.toml` running ahead of the registry is
-a release waiting to be published rather than a mismatch.
+**Five files carry the extension version, and CI fails unless all five agree.**
+`package.json`, `mcp/package.json`, `server.json` (**both** `.version` and
+`.packages[0].version`), `zed/extension.toml`, and `zed/Cargo.toml` — and
+regenerate `zed/Cargo.lock` with it, or `cargo test --locked` in `zed/` breaks.
+The same CI step pins registry identity: `server.json.name` must equal
+`mcp/package.json.mcpName`, `server.json.packages[0].identifier` must equal
+`mcp/package.json.name`, and `zed/src/lib.rs` must install that npm name.
 
-**`release-crate.yml`'s publish job cannot publish.** It is gated on a
-`crates-io` environment holding `CARGO_REGISTRY_TOKEN`, and that
-environment does not exist on this repo — the job fails on the token
-check every time. Do not wait on CI to publish a crate, and never read
-that job's outcome as the version having landed.
+**This gate is not relaxable.** The MCP registry verifies ownership by reading
+`mcpName` out of the *published* npm package, so a mismatch is only discoverable
+after the version is spent — and a version can never be republished. That is why
+this is a gate rather than a convention. A release that bumps only
+`package.json`, `mcp/package.json` and `server.json` leaves both Zed manifests
+behind and reds the tree; that happened to four repos in one release round.
 
-The workflow's `publish: false` dry run is still the right preflight: it
-checks the version is unspent, that the changelog has an entry, that the
-tarball carries its corpus and none of the contributor-only files, and
-that extraction parity holds. Dispatch that, confirm the Windows job in
-`CI (crate)` is green on the exact commit, then `cargo publish` locally.
+The crate version is deliberately **outside** this gate — `crate/Cargo.toml`
+moves on its own cadence, and the crate sitting at 0.x while the extension starts at 1.0 is intended.
+
+1. Bump `version` in package.json and write the CHANGELOG entry. The entry must describe what actually changed, including bug fixes — it ships inside the VSIX and renders on the listing page.
+2. Regenerate the README sections (`coverage:readme`, and `perf:readme` if behaviour changed) and commit them.
+3. CI green on all three OSes. That includes lint, typecheck, coverage, the bundle gate, packaging, integration tests, and the installed-VSIX e2e.
+4. Tag the commit being released, so the tag is the artifact rather than an approximation of it.
+5. Dispatch the `Release` workflow. It takes two independent opt-ins — `marketplace` (default **on**) and `openvsx` (default **off**) — because a version cannot be republished, so a run that publishes one registry and fails on the other is only recoverable by re-running with the failed target alone. It validates credentials before doing anything irreversible.
+
+**Open VSX defaults off deliberately.** `ovsx publish` takes no namespace argument; it derives the namespace from `publisher` in the VSIX. Enabling it publishes to whatever `package.json` currently names, with no confirmation.
+
+**The npm package ships from the same tag**, as a third opt-in on the `Release` workflow. It publishes by **trusted publishing** — GitHub mints a short-lived OIDC identity token and npm verifies it against the publisher configured on the package — so there is no npm credential in this repo, in Doppler, or in CI. That is why `id-token: write` is scoped to that job alone, and why it cannot run from a laptop. `bun run publish:npm` exists for a bootstrap publish only (a package must exist before a trusted publisher can be attached to it) and needs a token.
+
+Order matters beyond this repo: npm must be published *before* any Zed registry PR merges, because Zed's shim resolves the package at runtime — a merged extension pointing at an unpublished version is broken for everyone who installs it.
 
 ## Known limitations (documented, not bugs)
 
-Listed in full under "Left for the owner" in
-[`crate/AGENTS.md`](crate/AGENTS.md), so none of it reads as an
-oversight. In short: there is no VS Code extension and therefore no
-parity script or shared corpus; nothing tags the commit a release came
-from; formats beyond JSON and ARB are a documented deferral rather than
-a plan; plural-category completeness needs a CLDR rule set; the library
-table will need rows; and the call-site scan is substring matching
-rather than parsing, which is enough to vote and cheap enough to run.
+- Everything in `crate/SPEC.md`'s **Non-goals** and **Not in v0.3** holds here: JSON and ARB only, no plural-category completeness, no unused or undefined key detection, one set per audit.
+- The audit reads catalogues from disk, so unsaved edits in an open catalogue are not seen until the file is saved.
+- A folder named for a locale is treated as one locale of a namespaced set, and its parent is audited; to audit such a folder on its own, run the command on the files' parent with the library set.
+- Evidence lists config files and call sites in sorted name order. The crate reads directories in the order the filesystem returns them, so when several config files or source files carry evidence, the two can list them in a different order; which library is identified does not change.
+- A refusal's reason is the engine's English, identical to the CLI apart from how it names the setting.
