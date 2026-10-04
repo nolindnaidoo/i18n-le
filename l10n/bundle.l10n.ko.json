@@ -1,5 +1,9 @@
 {
 	"Catalogues": "카탈로그",
+	"Enjoying {0}? A rating helps other developers find it.": "{0}이(가) 마음에 드시나요? 평점을 남기면 다른 개발자가 찾는 데 도움이 됩니다.",
+	"Rate": "평가하기",
+	"Later": "나중에",
+	"Don't Ask Again": "다시 묻지 않기",
 	"Could not copy to clipboard": "클립보드에 복사할 수 없습니다",
 	"Could not open results": "결과를 열 수 없습니다",
 	"Found {0} catalogue problem(s) in {1} file(s)": "파일 {1}개에서 카탈로그 문제 {0}개를 찾았습니다",

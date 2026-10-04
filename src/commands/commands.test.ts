@@ -28,7 +28,15 @@ function makeDeps() {
 		dispose: () => {},
 	};
 	const statusBar: StatusBar = { flash: () => {} };
-	return { deps: { notifier: createNotifier(), statusBar, telemetry }, events };
+	return {
+		deps: {
+			notifier: createNotifier(),
+			statusBar,
+			telemetry,
+			ratingPrompt: { recordSuccess: async () => {} },
+		},
+		events,
+	};
 }
 
 async function runCommand(id: string, ...args: unknown[]): Promise<void> {

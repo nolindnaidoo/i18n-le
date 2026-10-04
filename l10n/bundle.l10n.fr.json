@@ -1,5 +1,9 @@
 {
 	"Catalogues": "Catalogues",
+	"Enjoying {0}? A rating helps other developers find it.": "Vous appréciez {0} ? Une note aide d’autres développeurs à le trouver.",
+	"Rate": "Noter",
+	"Later": "Plus tard",
+	"Don't Ask Again": "Ne plus demander",
 	"Could not copy to clipboard": "Impossible de copier dans le presse-papiers",
 	"Could not open results": "Impossible d’ouvrir les résultats",
 	"Found {0} catalogue problem(s) in {1} file(s)": "{0} problème(s) de catalogue trouvé(s) dans {1} fichier(s)",
