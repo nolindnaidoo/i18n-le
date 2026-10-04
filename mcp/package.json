@@ -1,6 +1,6 @@
 {
 	"name": "i18n-le-mcp",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"mcpName": "io.github.nolindnaidoo/i18n-le",
 	"description": "Audit translation catalogues: missing keys, broken placeholders. Never returns a translation.",
 	"keywords": [
