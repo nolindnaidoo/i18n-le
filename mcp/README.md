@@ -4,8 +4,8 @@
   <a href="https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.i18n-le">
     <img src="https://img.shields.io/badge/Install%20from-VS%20Code-blue?style=for-the-badge&logo=visualstudiocode" alt="Install from VS Code Marketplace" />
   </a>
-  <a href="https://open-vsx.org/extension/OffensiveEdge/i18n-le">
-    <img src="https://img.shields.io/open-vsx/dt/OffensiveEdge/i18n-le?style=for-the-badge&label=Open%20VSX&color=blue" alt="Open VSX downloads" />
+  <a href="https://open-vsx.org/extension/nolindnaidoo/i18n-le">
+    <img src="https://img.shields.io/open-vsx/dt/nolindnaidoo/i18n-le?style=for-the-badge&label=Open%20VSX&color=blue" alt="Open VSX downloads" />
   </a>
   <a href="https://www.npmjs.com/package/i18n-le-mcp">
     <img src="https://img.shields.io/npm/v/i18n-le-mcp?style=for-the-badge&label=MCP%20server&color=blue&logo=npm" alt="i18n-le-mcp on npm" />
@@ -62,7 +62,7 @@ claude mcp add i18n-le -- npx -y i18n-le-mcp
 **VS Code and Zed** need nothing here. Install the extension instead — it
 carries this server and registers it for you:
 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.i18n-le)
-· [Open VSX](https://open-vsx.org/extension/OffensiveEdge/i18n-le)
+· [Open VSX](https://open-vsx.org/extension/nolindnaidoo/i18n-le)
 · [Zed](https://zed.dev/docs/ai/mcp) *(no listing yet — add it by hand)*
 
 **No Node?** The same `check_catalogues` tool ships in a static Rust binary:
