@@ -1,5 +1,9 @@
 {
 	"Catalogues": "カタログ",
+	"Enjoying {0}? A rating helps other developers find it.": "{0} を気に入っていただけましたか？評価は、他の開発者がこの拡張機能を見つける助けになります。",
+	"Rate": "評価する",
+	"Later": "後で",
+	"Don't Ask Again": "今後表示しない",
 	"Could not copy to clipboard": "クリップボードにコピーできませんでした",
 	"Could not open results": "結果を開けませんでした",
 	"Found {0} catalogue problem(s) in {1} file(s)": "{1} 個のファイルで {0} 件のカタログの問題が見つかりました",

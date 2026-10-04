@@ -518,6 +518,11 @@ export function _createExtensionContext() {
 			update: async (key: string, value: unknown) => {
 				globalStateStore.set(key, value);
 			},
+			setKeysForSync: (_keys: readonly string[]) => {},
+		},
+		extension: {
+			id: 'nolindnaidoo.i18n-le',
+			packageJSON: { displayName: 'i18n-LE' },
 		},
 	};
 }
