@@ -36,7 +36,7 @@
 
 Spanish shipped last week and the metrics screen has said `{{periodo}}` to every user since. The catalogue had every key. It parsed. The placeholder came back from machine translation with its name translated too, which compiles perfectly and renders the literal.
 
-Open a catalogue, press `Ctrl+Alt+L` (`Cmd+Alt+L` on Mac), and the set it belongs to is audited against the source locale: keys a locale is missing or has too many of, placeholders dropped or renamed in translation, constructs from another library's convention, values left empty, keys defined twice, and a path that is an object in one locale and a string in another. The report opens beside the editor. From the Explorer, run it on any folder. Works in VS Code and in VS Code–based editors like Cursor and VSCodium (installable from Open VSX).
+Open a catalogue, run `i18n-LE: Audit Catalogues`, and the set it belongs to is audited against the source locale: keys a locale is missing or has too many of, placeholders dropped or renamed in translation, constructs from another library's convention, values left empty, keys defined twice, and a path that is an object in one locale and a string in another. The report opens beside the editor. From the Explorer, run it on any folder. Works in VS Code and in VS Code–based editors like Cursor and VSCodium (installable from Open VSX).
 
 - **Before a release** — is this locale shippable, or does it only look like it is?
 - **After machine translation** — `{{timeframe}}` that came back as `{{periodo}}`, caught by its token names
@@ -144,9 +144,11 @@ i18n-le mcp                            # the same audit over MCP on stdio
 
 | Command | Description |
 |---|---|
-| `i18n-LE: Audit Catalogues` (`Ctrl+Alt+L` / `Cmd+Alt+L`) | Audit the set the active catalogue belongs to, or the folder picked in the Explorer |
+| `i18n-LE: Audit Catalogues` | Audit the set the active catalogue belongs to, or the folder picked in the Explorer |
 | `i18n-LE: Open Settings` | Open i18n-LE settings |
 | `i18n-LE: Help & Troubleshooting` | Built-in documentation |
+
+No command is bound to a key by default. Give any of them one under **Keyboard Shortcuts** in the editor.
 
 ## Settings
 

@@ -108,14 +108,6 @@
 				}
 			]
 		},
-		"keybindings": [
-			{
-				"command": "i18n-le.audit",
-				"key": "ctrl+alt+l",
-				"mac": "cmd+alt+l",
-				"when": "editorTextFocus"
-			}
-		],
 		"configuration": {
 			"title": "%manifest.settings.title%",
 			"properties": {

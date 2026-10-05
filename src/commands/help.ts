@@ -38,7 +38,7 @@ export function generateHelpContent(): string {
 		'',
 		'## Commands',
 		'',
-		'- **Audit Catalogues** (`Ctrl+Alt+L`, Mac `Cmd+Alt+L`): the set the active catalogue belongs to. From the Explorer, the folder it is invoked on. A folder named for a locale, such as `locales/de`, is one locale of a namespaced set, so its parent is audited.',
+		'- **Audit Catalogues**: the set the active catalogue belongs to. From the Explorer, the folder it is invoked on. A folder named for a locale, such as `locales/de`, is one locale of a namespaced set, so its parent is audited.',
 		'',
 		'## Which library',
 		'',
