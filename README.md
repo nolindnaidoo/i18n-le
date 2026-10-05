@@ -52,7 +52,6 @@ Open a catalogue, press `Ctrl+Alt+L` (`Cmd+Alt+L` on Mac), and the set it belong
 | **Cursor, VSCodium, Windsurf** | The same extension | [Open VSX](https://open-vsx.org/extension/nolindnaidoo/i18n-le) |
 | **A terminal or a CI step** | The same audit, with an exit code | `cargo install i18n-le` · [crates.io](https://crates.io/crates/i18n-le) |
 | **Any MCP agent, via Node** | `check_catalogues` over stdio | `npx i18n-le-mcp` · [npm](https://www.npmjs.com/package/i18n-le-mcp) |
-| **Zed** | The MCP server as a context server | [add it by hand](https://zed.dev/docs/ai/mcp) *(no listing yet)* |
 
 ## It works out which library you use first
 
@@ -93,7 +92,6 @@ The same engine runs as an [MCP](https://modelcontextprotocol.io) server, so an 
 | Editor | How |
 |---|---|
 | **VS Code** 1.101+ | Nothing to install — the extension registers `check_catalogues` with agent mode |
-| **Zed** | No listing yet — [add the MCP server by hand](https://zed.dev/docs/ai/mcp) |
 | **Claude Code** | `claude mcp add i18n-le -- npx -y i18n-le-mcp` |
 | **Cursor, Windsurf, anything else** | point it at `npx i18n-le-mcp` |
 

@@ -59,11 +59,10 @@ claude mcp add i18n-le -- npx -y i18n-le-mcp
 }
 ```
 
-**VS Code and Zed** need nothing here. Install the extension instead — it
+**VS Code** needs nothing here. Install the extension instead — it
 carries this server and registers it for you:
 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.i18n-le)
 · [Open VSX](https://open-vsx.org/extension/nolindnaidoo/i18n-le)
-· [Zed](https://zed.dev/docs/ai/mcp) *(no listing yet — add it by hand)*
 
 **No Node?** The same `check_catalogues` tool ships in a static Rust binary:
 `cargo install i18n-le`, then `i18n-le mcp`
