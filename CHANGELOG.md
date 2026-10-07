@@ -10,7 +10,7 @@ separate product on its own cadence and keeps its own
 [CHANGELOG](crate/CHANGELOG.md). The entries below 1.0.0 describe this
 repository while it held the CLI alone.
 
-## [Unreleased]
+## [1.1.0] - 2026-10-07
 
 ### Added
 
@@ -22,6 +22,7 @@ repository while it held the CLI alone.
   after a failed run, and it is never shown if you have set
   `notificationsLevel` to `important` or `silent` yourself. The answer
   follows you through Settings Sync. Translated into all 12 locales.
+
 ### Changed
 
 - No command is bound to a key by default any more. The one default this

@@ -3,7 +3,7 @@
 	"publisher": "nolindnaidoo",
 	"displayName": "i18n-LE",
 	"description": "Audit translation catalogues against the source locale: missing keys, broken placeholders, wrong-convention syntax — and never print a translation",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"license": "MIT",
 	"author": {
 		"name": "nolindnaidoo",
