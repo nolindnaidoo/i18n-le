@@ -178,7 +178,7 @@ Both halves are covered — the manifest (command titles, setting names and desc
 - **No translated value ever reaches a report, a notification or the MCP boundary.** Keys are the deliberate exception, and where a layout makes the key the English sentence, that English is shown.
 - **The MCP server holds the same line.** It takes content as an argument and returns data: no filesystem access, no network calls, no telemetry. `check:mcp-bundle` fails the build if a translation reaches its stdout.
 - Error notifications redact home directories and credential-shaped fragments.
-- **One rating prompt, at most twice.** After 3 successful uses, on at least the second day you use it, the extension asks once whether you would rate it, and once more on the 25th use if you chose *Later* or dismissed it. *Don't Ask Again* ends it. Setting `notificationsLevel` to `important` or `silent` yourself turns it off. The counts are kept in VS Code's extension storage and nothing is sent anywhere; *Rate* opens the listing you installed from — the VS Code Marketplace or Open VSX — in your browser.
+- **One rating prompt, at most twice.** On the 3rd successful use the extension asks once whether you would rate it, and once more on the 20th if you chose *Later* or dismissed it. *Don't Ask Again* ends it. Setting `notificationsLevel` to `important` or `silent` yourself turns it off. The counts are kept in VS Code's extension storage and nothing is sent anywhere; *Rate* opens the listing you installed from — the VS Code Marketplace or Open VSX — in your browser.
 
 ## Documentation
 
@@ -212,12 +212,12 @@ a build only tells you how busy the runner was.
 <!-- coverage:start -->
 | Metric | Coverage |
 | --- | --- |
-| Statements | 90.87% |
-| Branches | 83.51% |
-| Functions | 96.82% |
-| Lines | 93.46% |
+| Statements | 90.85% |
+| Branches | 83.42% |
+| Functions | 96.81% |
+| Lines | 93.45% |
 
-246 test cases across 15 files, plus an integration suite that runs
+244 test cases across 15 files, plus an integration suite that runs
 in a real VS Code extension host and an end-to-end test that installs the
 built `.vsix` into a clean profile.
 
