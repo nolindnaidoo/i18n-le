@@ -5,7 +5,7 @@ The Rust CLI and MCP server.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.6] - 2026-10-15
 
 ### Changed
 
@@ -383,4 +383,5 @@ differ from every other for a reason that is not the catalogues.
 [0.3.2]: https://crates.io/crates/i18n-le/0.3.2
 [0.3.3]: https://crates.io/crates/i18n-le/0.3.3
 [0.3.4]: https://crates.io/crates/i18n-le/0.3.4
+[0.3.6]: https://crates.io/crates/i18n-le/0.3.6
 [0.3.5]: https://crates.io/crates/i18n-le/0.3.5
