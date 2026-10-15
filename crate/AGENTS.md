@@ -150,6 +150,9 @@ making it check nothing.
 - **A catalogue that will not parse is excluded, not half-read.** Unlike
   a dotenv file, half a JSON document is not evidence.
 - **stdout is protocol, stderr is human, and there is no `--json`.**
+  stdout stays silent when it is a terminal, because the stderr summary
+  already covers a person reading it. Anything that can parse gets the
+  report.
 - **One crate, self-contained.** No published `-core`, no shared crate,
   and nothing holding this code equal to the similar files in the
   sibling repos.
