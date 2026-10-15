@@ -1,0 +1,20 @@
+{
+  "files": [
+    "locales/en.json",
+    "locales/de.json",
+    "locales/es.json",
+    "locales/fr.json",
+    "package.json"
+  ],
+  "steps": [
+    {
+      "wait": 1500
+    },
+    {
+      "command": "i18n-LE: Audit Catalogues"
+    },
+    {
+      "wait": 5000
+    }
+  ]
+}
