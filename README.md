@@ -140,7 +140,7 @@ The same audit runs from a terminal or a CI step: a Rust CLI in [`crate/`](crate
 </p>
 
 ```bash
-i18n-le locales/                       # the set in that directory, as one JSON report
+i18n-le locales/                       # the set in that directory; JSON on stdout when piped
 i18n-le --system vscode-l10n l10n/     # name the library, skip identification
 i18n-le --fail-on untranslated locales/
 i18n-le mcp                            # the same audit over MCP on stdio

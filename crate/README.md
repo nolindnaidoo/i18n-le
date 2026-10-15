@@ -56,6 +56,9 @@ fr.json: duplicate app.greeting (defined 2×)
 
 Exit code 1.
 
+The report is JSON on stdout, printed when stdout is piped or redirected
+and left out at a terminal. The listing above is stderr.
+
 ## This one has a verdict
 
 The exit code is the product:
@@ -263,7 +266,8 @@ library supplies the naming rule.
 
 ## Output
 
-stdout is protocol, stderr is human. One JSON report for the whole run —
+stdout is protocol, stderr is human. One JSON report for the whole run,
+printed when stdout is piped or redirected and left out at a terminal —
 `schema: 3`, `severity` on every finding, and **no timestamp**, because
 a report is a thing to diff.
 

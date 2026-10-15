@@ -1,10 +1,11 @@
 //! The terminal surface.
 //!
 //! stdout is protocol — **one JSON report for the whole run**, not one
-//! line per file, because the answer is about the set of catalogues.
-//! stderr is for the human and is a projection of the same report.
+//! line per file, because the answer is about the set of catalogues. It
+//! is silent when it is a terminal. stderr is for the human and is a
+//! projection of the same report.
 
-use std::io::Write;
+use std::io::{IsTerminal, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -32,6 +33,9 @@ in source. Two agreeing is an identification. The library then supplies
 the placeholder grammar, the plural model, which keys are metadata and
 how the files are laid out; nothing downstream guesses. If no library
 can be identified, the run says which signals it found and stops.
+
+One JSON report on stdout when it is piped or redirected, human summary
+on stderr.
 
 Only key names and structural facts are reported. No translated value
 ever reaches stdout, stderr or an agent — a renamed placeholder is
@@ -107,12 +111,26 @@ fn execute(args: &[String]) -> Result<u8, String> {
     let options = parse(args)?;
     let report = scan::scan(&options.inputs, options.requested, &options.scan)?;
 
-    let line = serde_json::to_string(&report).expect("a report serializes");
-    writeln!(std::io::stdout().lock(), "{line}")
+    let stdout = std::io::stdout();
+    let terminal = stdout.is_terminal();
+    write_report(&mut stdout.lock(), &report, terminal)
         .map_err(|error| format!("could not write the report: {error}"))?;
 
     summarise(&report);
     Ok(scan::exit_code(&report, options.fail_on, options.strict))
+}
+
+/// A terminal gets nothing here. The stderr summary already lists every
+/// finding a person reads, and the JSON beside it on the same screen is
+/// the same answer a second time in a form nobody reads by eye. Anything
+/// that can parse — a pipe, a file, a subprocess — still gets the
+/// report, so no script sees a difference.
+fn write_report(out: &mut impl Write, report: &Report, terminal: bool) -> std::io::Result<()> {
+    if terminal {
+        return Ok(());
+    }
+    let line = serde_json::to_string(report).expect("a report serializes");
+    writeln!(out, "{line}")
 }
 
 fn parse(args: &[String]) -> Result<Cli, String> {
@@ -326,6 +344,40 @@ fn plural(count: usize, one: &str, many: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testing::TempTree;
+
+    fn sample_report() -> Report {
+        let tree = TempTree::new("cli-report");
+        tree.write("package.json", r#"{"dependencies":{"i18next":"^26.0.0"}}"#);
+        tree.write("src/a.ts", "useTranslation()\n");
+        tree.write("locales/en.json", r#"{"a":"Hello {{name}}","b":"two"}"#);
+        tree.write("locales/es.json", r#"{"a":"Hola {{name}}"}"#);
+        scan::scan(
+            &[tree.path().join("locales")],
+            Requested::Detect,
+            &ScanOptions::default(),
+        )
+        .expect("a scan")
+    }
+
+    #[test]
+    fn a_pipe_gets_the_report_on_one_line() {
+        let report = sample_report();
+        let mut out = Vec::new();
+        write_report(&mut out, &report, false).expect("a write");
+        let text = String::from_utf8(out).expect("utf-8");
+        assert_eq!(text.lines().count(), 1, "{text}");
+        assert!(text.starts_with('{'), "{text}");
+    }
+
+    /// The summary on stderr already covers a person at a terminal.
+    #[test]
+    fn a_terminal_gets_no_json() {
+        let report = sample_report();
+        let mut out = Vec::new();
+        write_report(&mut out, &report, true).expect("a write");
+        assert_eq!(String::from_utf8(out).expect("utf-8"), "");
+    }
     use crate::audit::Severity;
     use crate::library::Shape;
 

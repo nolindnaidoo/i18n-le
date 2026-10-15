@@ -355,9 +355,13 @@ Deferred, and named here rather than left as a silent gap:
 ## Output contract
 
 **stdout is protocol, stderr is human.** One JSON report for the whole
-run. **There is no `--json` flag** — one mode, nothing to misremember,
-and the human summary is a projection of the same report so the two
-cannot drift.
+run. **There is no `--json` flag.** When stdout is a pipe, a file or a
+subprocess it carries the report. When it is a terminal it carries
+nothing, because the stderr summary already lists every finding a person
+reads there, and the same answer repeated as JSON on the same screen is
+noise. No script can tell the difference, since a script is never a
+terminal. The human summary is a projection of the same report so the
+two cannot drift.
 
 ```json
 {
