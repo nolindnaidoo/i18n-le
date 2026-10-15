@@ -15,6 +15,8 @@
   </a>
 </p>
 
+![An agent in Claude Code calling the i18n-le MCP server](https://raw.githubusercontent.com/nolindnaidoo/i18n-le/main/assets/demos/mcp.gif)
+
 An [MCP](https://modelcontextprotocol.io) server that audits a set of
 translation catalogues against one of them — missing and extra keys,
 placeholders dropped or renamed in translation, constructs from another i18n
