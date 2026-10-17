@@ -66,6 +66,14 @@ artifact users actually install.
   an editor equivalent. That is not drift, and nothing holds them equal — see
   `crate/SPEC.md`. The identification port check holds the *engine* to the
   crate's, which is a different thing.
+- **The npm command line is the crate's surface, not the extension's.**
+  `src/cli/` builds the npm package `i18n-le`, which installs the same
+  command the crate does, so it is held to the Rust CLI byte for byte by
+  `bun run check:cli-parity` (after `bun run build:cli` and a `cargo build`
+  in `crate/`), MCP replies included. A change to the crate's flags,
+  summary, exit codes or output changes `src/cli/` in the same commit.
+  `--version` is compared too, because every surface carries one version;
+  see AGENTS.md, Release.
 - **Never parse a catalogue with `JSON.parse`.** It folds duplicate keys and
   reports errors in its own words. `src/audit/json.ts` is serde_json's parser
   transcribed, and the differential holds its error text to the crate's.

@@ -336,9 +336,10 @@ Named here so none of it reads as an oversight:
   between this crate and itself, and `ci-crate.yml` says in its own
   header that the `parity` and `differential` jobs are absent rather
   than vacuous until one exists.
-- **No `crate-v*` tagging convention.** `release-crate.yml` is
-  dispatch-only and reads the version from `Cargo.toml`, so nothing tags
-  the commit that was released.
+- **One tag for every surface.** Since 1.2.0 the crate carries the
+  repository's one version and releases from its one tag, `v<version>`;
+  the root `AGENTS.md` has the release steps. `release-crate.yml` is
+  dispatch-only and reads the version from `Cargo.toml`.
 - **A library declared in a manifest kind nothing reads yet.** Adding
   one is a reader in `identify.rs` beside `npm_signals` and
   `pubspec_signals`, with `declared_version` and `check_version`
