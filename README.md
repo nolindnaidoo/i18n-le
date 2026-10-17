@@ -17,6 +17,9 @@
   <a href="https://www.npmjs.com/package/i18n-le-mcp">
     <img src="https://img.shields.io/npm/v/i18n-le-mcp?style=for-the-badge&label=MCP%20server&color=blue&logo=npm" alt="i18n-le-mcp on npm" />
   </a>
+  <a href="https://www.npmjs.com/package/i18n-le">
+    <img src="https://img.shields.io/npm/v/i18n-le?style=for-the-badge&label=npm%20CLI&color=blue&logo=npm" alt="i18n-le on npm" />
+  </a>
   <a href="https://crates.io/crates/i18n-le">
     <img src="https://img.shields.io/crates/v/i18n-le?style=for-the-badge&label=Rust%20CLI&color=blue&logo=rust" alt="i18n-le on crates.io" />
   </a>
@@ -139,6 +142,22 @@ The same audit runs from a terminal or a CI step: a Rust CLI in [`crate/`](crate
 <p align="center">
   <img src="assets/demos/cli.gif" alt="i18n-le in a terminal" style="max-width: 100%; height: auto;" />
 </p>
+
+**Install it from npm** ([`i18n-le`](https://www.npmjs.com/package/i18n-le)) **or from crates.io** ([`i18n-le`](https://crates.io/crates/i18n-le)). Both install the same `i18n-le` command.
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/i18n-le">
+    <img src="https://img.shields.io/npm/v/i18n-le?style=for-the-badge&label=npm%20CLI&color=blue&logo=npm" alt="i18n-le on npm" />
+  </a>
+  <a href="https://crates.io/crates/i18n-le">
+    <img src="https://img.shields.io/crates/v/i18n-le?style=for-the-badge&label=Rust%20CLI&color=blue&logo=rust" alt="i18n-le on crates.io" />
+  </a>
+</p>
+
+```bash
+npm install -g i18n-le   # or run it once: npx i18n-le
+cargo install i18n-le
+```
 
 ```bash
 i18n-le locales/                       # the set in that directory; JSON on stdout when piped
