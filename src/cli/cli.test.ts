@@ -160,8 +160,9 @@ describe('run', () => {
 	it('names a missing first path as typed, in Rust words', async () => {
 		const { err, io: streams } = io();
 		expect(await run(['no-such-dir-here'], streams)).toBe(2);
-		expect(err.join('')).toBe(
-			'i18n-le: no-such-dir-here: No such file or directory (os error 2)\n',
+		// The OS words the error; the parity check compares that wording per OS.
+		expect(err.join('')).toMatch(
+			/^i18n-le: no-such-dir-here: [^\n]+ \(os error 2\)\n$/,
 		);
 	});
 });
