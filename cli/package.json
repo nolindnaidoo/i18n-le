@@ -1,0 +1,47 @@
+{
+	"name": "i18n-le",
+	"version": "1.2.0",
+	"description": "Audit a set of translation catalogues against one of them: missing keys, broken placeholders, empty and untranslated values. Never quotes a translation.",
+	"keywords": [
+		"i18n",
+		"l10n",
+		"translations",
+		"i18next",
+		"next-intl",
+		"audit",
+		"cli",
+		"i18n-le",
+		"nolindnaidoo",
+		"letools"
+	],
+	"license": "MIT",
+	"author": {
+		"name": "Nolin Naidoo",
+		"url": "https://nolindnaidoo.com"
+	},
+	"homepage": "https://letools.dev/tools/i18n-le",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nolindnaidoo/i18n-le.git",
+		"directory": "cli"
+	},
+	"bugs": {
+		"url": "https://github.com/nolindnaidoo/i18n-le/issues"
+	},
+	"type": "commonjs",
+	"bin": {
+		"i18n-le": "cli.js"
+	},
+	"files": [
+		"cli.js",
+		"README.md",
+		"LICENSE"
+	],
+	"engines": {
+		"node": ">=20"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	}
+}

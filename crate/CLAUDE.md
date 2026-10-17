@@ -78,6 +78,12 @@ on any conflict.
 - **`identify.rs` answers which library; `layout.rs` answers which
   files.** The dependency runs one way and must stay that way — nothing
   in `layout.rs` may learn what a manifest or a call site is.
+- **The command line has a twin.** The npm package `i18n-le`, built
+  from the extension's `src/cli/` over the ported engine, mirrors
+  `cli.rs`, `scan.rs`, `identify.rs` and `mcp/` byte for byte, and
+  `bun ../scripts/check-cli-parity.ts` fails on any difference. A change
+  to a flag, a message, the summary, an exit code or an MCP reply
+  changes `src/cli/` in the same commit.
 - Write regression tests for every bug you fix; keep unit tests free of
   clocks, randomness, and the filesystem outside
   `identify`/`layout`/`scan`.

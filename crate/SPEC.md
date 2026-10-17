@@ -433,6 +433,15 @@ Exit codes: **0** clean · **1** findings · **2** malformed question.
 Finding no catalogues at all is 0. There is no working-directory
 default.
 
+**Held equal: this surface and the npm one.** The npm package `i18n-le`
+installs a command named `i18n-le`, built from the extension's `src/cli/`
+over the extension's port of this crate, and nobody running `i18n-le` can
+tell which one they have. It is held to everything in this section byte
+for byte — flags, identification, the audit, exit codes, stdout, stderr,
+and every reply `i18n-le mcp` writes — by `scripts/check-cli-parity.ts`.
+A change to this surface changes `src/cli/` in the same commit. That
+includes `--version`: every surface in the repository carries one version.
+
 ## The MCP surface
 
 One tool, `check_catalogues`, taking `library` and

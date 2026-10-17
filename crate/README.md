@@ -322,9 +322,11 @@ refusal. That is the honest split, not a missing feature.
 | Route | Command | Worth knowing |
 |---|---|---|
 | **cargo** | `cargo install i18n-le` | Any platform, needs **Rust 1.88+**. |
+| **npm** | `npm install -g i18n-le` or `npx i18n-le` | Needs **Node 20+**. The same `i18n-le` command, held to this one byte for byte. |
 | **From source** | `cd i18n-le/crate && cargo build --release` | Two dependencies: `serde` and `serde_json`. |
 
-No runtime, no network, nothing written.
+The cargo build needs no runtime. Neither one touches the network or
+writes a file.
 
 ## Documentation
 

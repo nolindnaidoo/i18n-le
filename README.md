@@ -55,6 +55,7 @@ Open a catalogue, run `i18n-LE: Audit Catalogues`, and the set it belongs to is 
 | **VS Code** | The audit, in your editor, on a keystroke | [Marketplace](https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.i18n-le) |
 | **Cursor, VSCodium, Windsurf** | The same extension | [Open VSX](https://open-vsx.org/extension/nolindnaidoo/i18n-le) |
 | **A terminal or a CI step** | The same audit, with an exit code | `cargo install i18n-le` · [crates.io](https://crates.io/crates/i18n-le) |
+| **A terminal, via Node** | The same command line, held to the Rust one byte for byte | `npx i18n-le` · [npm](https://www.npmjs.com/package/i18n-le) |
 | **Any MCP agent, via Node** | `check_catalogues` over stdio | `npx i18n-le-mcp` · [npm](https://www.npmjs.com/package/i18n-le-mcp) |
 
 ## It works out which library you use first
@@ -133,7 +134,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | npx -y i18n-le-mcp
 
 ## The CLI
 
-The same audit runs from a terminal or a CI step: a Rust CLI in [`crate/`](crate/README.md), sharing one corpus with the extension — [`crate/fixtures/`](crate/fixtures/) — so the two can never read a catalogue differently.
+The same audit runs from a terminal or a CI step: a Rust CLI in [`crate/`](crate/README.md), sharing one corpus with the extension — [`crate/fixtures/`](crate/fixtures/) — so the two can never read a catalogue differently. The same command line also ships on npm as `i18n-le`, for a machine with Node and no Rust, and CI holds it to the crate byte for byte on three operating systems.
 
 <p align="center">
   <img src="assets/demos/cli.gif" alt="i18n-le in a terminal" style="max-width: 100%; height: auto;" />
@@ -220,12 +221,12 @@ a build only tells you how busy the runner was.
 <!-- coverage:start -->
 | Metric | Coverage |
 | --- | --- |
-| Statements | 90.85% |
-| Branches | 83.42% |
-| Functions | 96.81% |
-| Lines | 93.45% |
+| Statements | 87.85% |
+| Branches | 79.89% |
+| Functions | 93.31% |
+| Lines | 90.47% |
 
-244 test cases across 15 files, plus an integration suite that runs
+262 test cases across 17 files, plus an integration suite that runs
 in a real VS Code extension host and an end-to-end test that installs the
 built `.vsix` into a clean profile.
 
