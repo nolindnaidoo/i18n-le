@@ -3,7 +3,7 @@
 	"publisher": "nolindnaidoo",
 	"displayName": "i18n-LE: i18n & Localization Linter",
 	"description": "i18n translation linter: audit locale catalogs for missing keys, broken placeholders and wrong-convention syntax, by your i18n library's rules",
-	"version": "1.2.2",
+	"version": "1.2.3",
 	"license": "MIT",
 	"author": {
 		"name": "nolindnaidoo",
