@@ -41,8 +41,7 @@
 	"l10n": "./l10n",
 	"main": "./dist/extension.js",
 	"activationEvents": [
-		"onLanguage:json",
-		"onLanguage:jsonc"
+		"onStartupFinished"
 	],
 	"capabilities": {
 		"virtualWorkspaces": {
