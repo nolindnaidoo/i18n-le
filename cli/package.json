@@ -1,6 +1,6 @@
 {
 	"name": "i18n-le",
-	"version": "1.2.1",
+	"version": "1.2.2",
 	"description": "Audit a set of translation catalogues against one of them: missing keys, broken placeholders, empty and untranslated values. Never quotes a translation.",
 	"keywords": [
 		"i18n",
