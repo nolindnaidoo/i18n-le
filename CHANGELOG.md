@@ -11,6 +11,18 @@ npm command line. The Rust CLI in `crate/` keeps its own
 version and releases from one tag. The entries below 1.0.0 describe this
 repository while it held the CLI alone.
 
+## [Unreleased]
+
+### Changed
+
+- **The listing carries the words people search for.** Open VSX ranks a
+  match in the name five times a match in the description, and "i18n-LE"
+  holds neither "translation" nor "localization", so searches for them put
+  it 45th and 37th on 2026-10-18. The name is "i18n-LE: i18n & Localization
+  Linter", the description opens with "i18n translation linter", where a
+  card has room for about forty characters, and the keywords are cut from 19
+  to 10 phrases someone would search for.
+
 ## [1.2.1] - 2026-10-17
 
 ### Fixed
