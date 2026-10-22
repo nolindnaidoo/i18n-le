@@ -26,5 +26,6 @@
 	"{0} catalogue(s)": "카탈로그 {0}개",
 	"{0} finding(s)": "결과 {0}개",
 	"{0} key(s)": "키 {0}개",
-	"{0} placeholder(s) in the source, {1} here": "원본의 자리 표시자 {0}개, 여기에는 {1}개"
+	"{0} placeholder(s) in the source, {1} here": "원본의 자리 표시자 {0}개, 여기에는 {1}개",
+	"i18n-LE could not finish: {0}": "i18n-LE을(를) 완료할 수 없습니다: {0}"
 }

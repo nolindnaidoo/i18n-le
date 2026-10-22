@@ -26,5 +26,6 @@
 	"{0} catalogue(s)": "{0} catálogo(s)",
 	"{0} finding(s)": "{0} hallazgo(s)",
 	"{0} key(s)": "{0} clave(s)",
-	"{0} placeholder(s) in the source, {1} here": "{0} marcador(es) en el origen, {1} aquí"
+	"{0} placeholder(s) in the source, {1} here": "{0} marcador(es) en el origen, {1} aquí",
+	"i18n-LE could not finish: {0}": "i18n-LE no pudo terminar: {0}"
 }

@@ -26,5 +26,6 @@
 	"{0} catalogue(s)": "{0} katalog",
 	"{0} finding(s)": "{0} temuan",
 	"{0} key(s)": "{0} kunci",
-	"{0} placeholder(s) in the source, {1} here": "{0} placeholder di sumber, {1} di sini"
+	"{0} placeholder(s) in the source, {1} here": "{0} placeholder di sumber, {1} di sini",
+	"i18n-LE could not finish: {0}": "i18n-LE tidak dapat menyelesaikan: {0}"
 }

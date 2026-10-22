@@ -26,5 +26,6 @@
 	"{0} catalogue(s)": "{0} 个目录",
 	"{0} finding(s)": "{0} 项发现",
 	"{0} key(s)": "{0} 个键",
-	"{0} placeholder(s) in the source, {1} here": "源中有 {0} 个占位符,此处有 {1} 个"
+	"{0} placeholder(s) in the source, {1} here": "源中有 {0} 个占位符,此处有 {1} 个",
+	"i18n-LE could not finish: {0}": "i18n-LE 无法完成：{0}"
 }

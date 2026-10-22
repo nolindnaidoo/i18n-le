@@ -26,5 +26,6 @@
 	"{0} catalogue(s)": "каталогів: {0}",
 	"{0} finding(s)": "знахідок: {0}",
 	"{0} key(s)": "ключів: {0}",
-	"{0} placeholder(s) in the source, {1} here": "підстановок у джерелі: {0}, тут: {1}"
+	"{0} placeholder(s) in the source, {1} here": "підстановок у джерелі: {0}, тут: {1}",
+	"i18n-LE could not finish: {0}": "i18n-LE не вдалося завершити: {0}"
 }

@@ -26,5 +26,6 @@
 	"{0} catalogue(s)": "{0} cataloghi",
 	"{0} finding(s)": "{0} rilievi",
 	"{0} key(s)": "{0} chiavi",
-	"{0} placeholder(s) in the source, {1} here": "{0} segnaposto nell’origine, {1} qui"
+	"{0} placeholder(s) in the source, {1} here": "{0} segnaposto nell’origine, {1} qui",
+	"i18n-LE could not finish: {0}": "i18n-LE non è riuscito a completare: {0}"
 }
