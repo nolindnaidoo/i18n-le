@@ -26,5 +26,6 @@
 	"{0} catalogue(s)": "{0} danh mục",
 	"{0} finding(s)": "{0} phát hiện",
 	"{0} key(s)": "{0} khóa",
-	"{0} placeholder(s) in the source, {1} here": "{0} chỗ giữ chỗ ở nguồn, {1} ở đây"
+	"{0} placeholder(s) in the source, {1} here": "{0} chỗ giữ chỗ ở nguồn, {1} ở đây",
+	"i18n-LE could not finish: {0}": "i18n-LE không thể hoàn thành: {0}"
 }

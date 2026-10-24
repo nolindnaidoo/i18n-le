@@ -26,5 +26,6 @@
 	"{0} catalogue(s)": "{0} 個のカタログ",
 	"{0} finding(s)": "{0} 件の検出結果",
 	"{0} key(s)": "{0} 個のキー",
-	"{0} placeholder(s) in the source, {1} here": "ソースのプレースホルダー {0} 個、ここでは {1} 個"
+	"{0} placeholder(s) in the source, {1} here": "ソースのプレースホルダー {0} 個、ここでは {1} 個",
+	"i18n-LE could not finish: {0}": "i18n-LE を完了できませんでした: {0}"
 }
