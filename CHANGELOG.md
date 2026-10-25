@@ -13,6 +13,13 @@ repository while it held the CLI alone.
 
 ## [Unreleased]
 
+### Changed
+
+- **The name says "l10n".** The word was a keyword only, and Open VSX ranks a
+  match in the name five times one in the description, so a search for "l10n"
+  put the extension 9th among 28 results. The name is "i18n-LE: i18n, l10n &
+  Localization Linter".
+
 ### Fixed
 
 - The MCP server held every byte of a frame until its newline, with no
