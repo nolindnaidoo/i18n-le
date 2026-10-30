@@ -22,6 +22,16 @@ repository while it held the CLI alone.
 
 ### Fixed
 
+- The extension's MCP server answered `initialize` with whatever protocol
+  version the client asked for and a `listChanged: false` capability, where
+  the crate's server answers its own version and `tools: {}`; it replied to
+  an `initialize` with no id; it answered `notifications/initialized` sent
+  with an id with nothing, where the crate's server refuses an unknown
+  method; and a frame led by a byte order mark was read as a request here
+  and refused as not JSON there. The three servers answer one handshake and
+  one malformed frame alike now. The server also stops reading while the
+  pipe to a slow client is full, so what it holds is bounded by the
+  requests in flight.
 - The MCP server held every byte of a frame until its newline, with no
   ceiling, so a client that streamed without one grew the process without
   bound and got no answer. A frame over 16 MiB is refused with a parse error
