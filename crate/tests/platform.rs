@@ -329,10 +329,10 @@ fn the_mcp_server_exits_cleanly_when_stdin_closes_immediately() {
     assert!(run.stdout.is_empty(), "{}", run.stdout);
 }
 
-/// A frame that is not JSON has no id to answer against, so it is
-/// dropped rather than replied to — and the frames after it are still
-/// served. Written here because it is the line-reading half of the
-/// stdio surface, which is where a platform difference would show.
+/// A frame that is not JSON has no id to answer against; it is answered
+/// with a parse error, in the npm servers' words, and the frames after it
+/// are still served. Written here because it is the line-reading half of
+/// the stdio surface, which is where a platform difference would show.
 #[test]
 fn the_mcp_server_survives_a_frame_it_cannot_read() {
     let mut child = Command::new(BINARY)
@@ -359,6 +359,8 @@ fn the_mcp_server_survives_a_frame_it_cannot_read() {
         .filter(|line| !line.trim().is_empty())
         .map(|line| serde_json::from_str(line).expect("a JSON reply"))
         .collect();
-    assert_eq!(replies.len(), 1, "{replies:?}");
-    assert_eq!(replies[0]["id"], 7);
+    assert_eq!(replies.len(), 2, "{replies:?}");
+    assert_eq!(replies[0]["error"]["code"], -32700);
+    assert_eq!(replies[0]["error"]["message"], "Invalid JSON");
+    assert_eq!(replies[1]["id"], 7);
 }
